@@ -1,0 +1,1 @@
+put public assets in this folder like images, icons, and stuff
