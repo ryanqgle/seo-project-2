@@ -74,9 +74,26 @@ def test_auth():
     
     return {"status": "error", "message": "rejected!"}
 
-url = os.getenv('SUPABASE_URL')
-key = os.getenv('SUPABASE_KEY')
-supabase = create_client(url, key)
+
+@app.route('/api/users/exists', methods=['GET'])
+def user_exists():
+    """Check whether an email already has an account.
+
+    The frontend uses this to decide whether to prompt single sign-on
+    (account exists) or sign up (no account yet).
+    """
+    email = request.args.get('email', '').strip()
+    if not email:
+        return {"exists": False, "error": "email is required"}, 400
+
+    try:
+        # ilike = same as the ILIKE operator in SQL, which is case-insensitive
+        result = supabase.table('users').select('id').ilike('email', email).limit(1).execute()
+        return {"exists": len(result.data) > 0}
+    except Exception as e:
+        print(f"Error checking user: {e}")
+        return {"exists": False, "error": "lookup failed"}, 500
+
 
 # Import blueprints after `supabase` is defined so trips.py can import it
 from trips import trips_bp
@@ -85,5 +102,4 @@ app.register_blueprint(trips_bp)
 
 
 if __name__ == '__main__':
-    # Port 5000 is taken by macOS AirPlay Receiver, so use 5001
     app.run(debug=True, port=5001)

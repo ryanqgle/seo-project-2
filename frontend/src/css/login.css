@@ -79,3 +79,23 @@
 .login__form button:hover {
   opacity: 0.9;
 }
+.login__form button:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+.login__error {
+  margin-top: 8px;
+  font-size: 14px;
+  color: #dc2626;
+}
+.login__link {
+  margin-top: 4px !important;
+  background: none !important;
+  color: var(--text) !important;
+  text-decoration: underline;
+  padding: 0 !important;
+}
+.login__link:hover {
+  color: var(--text-h) !important;
+  opacity: 1;
+}
