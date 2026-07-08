@@ -1,5 +1,5 @@
 import '../css/header.css'
-function Header({ onNavigate }) {
+function Header({ onNavigate, isLoggedIn, onLogout }) {
   return (
     <header className="site-header">
       <button
@@ -16,9 +16,15 @@ function Header({ onNavigate }) {
         <button type="button" onClick={() => onNavigate('about')}>
           About
         </button>
-        <button type="button" onClick={() => onNavigate('login')}>
-          Login
-        </button>
+        {isLoggedIn ? (
+          <button type="button" onClick={onLogout}>
+            Log out
+          </button>
+        ) : (
+          <button type="button" onClick={() => onNavigate('login')}>
+            Login
+          </button>
+        )}
       </nav>
     </header>
   )

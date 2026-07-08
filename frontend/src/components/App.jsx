@@ -17,9 +17,7 @@ function App() {
         </div>
         <div>
           <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.jsx</code> and save to test <code>HMR</code>
-          </p>
+          <p>Log in with your .edu email to see and post trips.</p>
         </div>
         <button
           type="button"
