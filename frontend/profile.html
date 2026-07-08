@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2>My Profile</h2>
+
+<div class="profile-info">
+  <p><strong>Name:</strong> {{ user.first_name }} {{ user.last_name }}</p>
+  <p><strong>Email:</strong> {{ user.email }}</p>
+  <p><strong>School:</strong> {{ user.school }}</p>
+  {% if user.rating %}
+    <p><strong>Rating:</strong> {{ user.rating }}</p>
+  {% endif %}
+</div>
+
+<h3>Trips I've Posted</h3>
+{% if posted_trips %}
+  <ul class="trip-list">
+    {% for trip in posted_trips %}
+      <li>
+        <strong>{{ trip.title }}</strong> &mdash; {{ trip.destination }}<br>
+        Departs: {{ trip.departure_time }}<br>
+        Category: {{ trip.category|capitalize }}
+        {% if trip.round_trip %} (Round trip){% endif %}<br>
+        Seats available: {{ trip.available_seats }}<br>
+        Cost: ${{ trip.cost }}<br>
+        Status: {{ trip.status }}
+      </li>
+    {% endfor %}
+  </ul>
+{% else %}
+  <p>You haven't posted any trips yet.</p>
+{% endif %}
+
+<h3>Trips I've Joined</h3>
+{% if joined_requests %}
+  <ul class="trip-list">
+    {% for req in joined_requests %}
+      <li>
+        <strong>{{ req.Trips.title }}</strong> &mdash; {{ req.Trips.destination }}<br>
+        Departs: {{ req.Trips.departure_time }}<br>
+        My request status: {{ req.status }}
+      </li>
+    {% endfor %}
+  </ul>
+{% else %}
+  <p>You haven't joined any trips yet.</p>
+{% endif %}
+{% endblock %}

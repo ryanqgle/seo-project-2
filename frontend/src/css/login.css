@@ -1,0 +1,81 @@
+.login-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  background: rgba(0, 0, 0, 0.5);
+}
+.login-modal {
+  position: relative;
+  width: 360px;
+  max-width: 100%;
+  padding: 32px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  box-shadow: var(--shadow);
+}
+.login-modal__close {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 32px;
+  height: 32px;
+  font-size: 24px;
+  line-height: 1;
+  color: var(--text);
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+.login-modal__close:hover {
+  color: var(--text-h);
+}
+.login__form {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 320px;
+  max-width: 100%;
+  text-align: left;
+}
+.login__form h1 {
+  font-size: 32px;
+  margin: 0;
+}
+.login__form p {
+  margin-bottom: 16px;
+}
+.login__form label {
+  font-size: 14px;
+  color: var(--text-h);
+}
+.login__form input {
+  padding: 10px 12px;
+  margin-bottom: 8px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--bg);
+  color: var(--text-h);
+  font: inherit;
+}
+.login__form input:focus {
+  outline: none;
+  border-color: var(--accent-border);
+}
+.login__form button {
+  margin-top: 8px;
+  padding: 10px 16px;
+  border: none;
+  border-radius: 6px;
+  background: var(--accent);
+  color: #fff;
+  font: inherit;
+  cursor: pointer;
+}
+.login__form button:hover {
+  opacity: 0.9;
+}
