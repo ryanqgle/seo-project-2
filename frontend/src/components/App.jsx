@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
-import { supabase } from './dbConnection'
+import { supabase } from '../dbConnection'
+import UserProfile from './UserProfile'
 import '../css/App.css'
 
 function App() {
@@ -68,6 +69,8 @@ function App() {
       <button onClick={loginWithGoogle}>Login with Google</button>
       <button onClick={logout}>Logout</button>
       <button onClick={testBackendConn}>Test Flask Connection</button>
+
+      <UserProfile />
     </>
   )
 }
