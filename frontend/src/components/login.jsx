@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import '../css/login.css'
 
-function Login({ onClose }) {
+function Login({ onClose, onLoginSuccess }) {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
 
@@ -15,8 +15,11 @@ function Login({ onClose }) {
 
   const handleSubmit = (event) => {
     event.preventDefault()
-    // TODO: connect to .edu auth thing
+    // TODO: replace this stub with real auth (verify credentials against the
+    // database). For now, submitting is treated as a successful login so the
+    // trips feed can be shown.
     console.log('Logging in with', { email, password })
+    onLoginSuccess()
   }
 
   return (

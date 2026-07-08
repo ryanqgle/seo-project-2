@@ -1,5 +1,5 @@
 from datetime import datetime
-from flask import Blueprint, render_template, request, redirect, url_for, session, flash
+from flask import Blueprint, render_template, request, redirect, url_for, session, flash, jsonify
 
 
 from app import supabase
@@ -7,6 +7,19 @@ from app import supabase
 trips_bp = Blueprint('trips', __name__)
 
 CATEGORY_CHOICES = ['campus', 'grocery', 'airport', 'other']
+
+
+@trips_bp.route('/api/trips', methods=['GET'])
+def get_trips():
+    """Return open trips as JSON for the frontend feed, soonest departure first."""
+    try:
+        result = supabase.table('trips').select('*') \
+            .eq('status', 'open') \
+            .order('departure_time', desc=False) \
+            .execute()
+        return jsonify(result.data)
+    except Exception as error:
+        return jsonify({'error': str(error)}), 500
 
 
 @trips_bp.route('/trips/new', methods=['GET', 'POST'])
