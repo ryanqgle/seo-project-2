@@ -1,24 +1,20 @@
 import '../css/header.css'
+import { Link } from 'react-router-dom'
+
 function Header({ onNavigate }) {
   return (
     <header className="site-header">
-      <button
-        type="button"
+      <Link
+        to="/"
         className="site-header__brand"
-        onClick={() => onNavigate('home')}
       >
         Hop In
-      </button>
+      </Link>
       <nav className="site-header__nav">
-        <button type="button" onClick={() => onNavigate('home')}>
-          Home
-        </button>
-        <button type="button" onClick={() => onNavigate('about')}>
-          About
-        </button>
-        <button type="button" onClick={() => onNavigate('login')}>
-          Login
-        </button>
+        <Link to="/" >Home</Link>
+        <Link to="/profile" >Profile</Link>
+        <Link to="/about" >About</Link>
+        <Link to="/login" >Login</Link>
       </nav>
     </header>
   )

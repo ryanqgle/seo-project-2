@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react'
+import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import { supabase } from '../dbConnection'
 import UserProfile from './UserProfile'
+import Home from './Home'
 import '../css/App.css'
 
 function App() {
@@ -35,43 +37,12 @@ function App() {
     return () => data.subscription.unsubscribe()
   }, [])
 
-  const loginWithGoogle = async () => {
-    await supabase.auth.signInWithOAuth({
-      provider: 'google',
-    })
-  }
-
-  const logout = async () => {
-    await supabase.auth.signOut()
-    localStorage.removeItem('supabaseToken')
-    alert("Logged out successfully!")
-  }
-
-  const testBackendConn = async () => {
-    const token = localStorage.getItem('supabaseToken')
-
-    console.log("Token from localStorage: ", token)
-
-    const res = await fetch('http://127.0.0.1:5000/api/test', {
-      method: 'GET',
-      headers: {
-        'Authorization': `Bearer ${token}`
-      }
-    })
-
-    const data = await res.json()
-    console.log("Flask response: ", data)
-    alert(data.message)
-  }
 
   return (
-    <>
-      <button onClick={loginWithGoogle}>Login with Google</button>
-      <button onClick={logout}>Logout</button>
-      <button onClick={testBackendConn}>Test Flask Connection</button>
-
-      <UserProfile />
-    </>
+      <Routes>
+        <Route path="/" element={<Home />} />
+        <Route path="/profile" element={<UserProfile />} />
+      </Routes>
   )
 }
 
