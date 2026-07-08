@@ -1,4 +1,5 @@
-import { StrictMode, useState, useEffect } from 'react'
+import { StrictMode, useState, React, useEffect } from 'react'
+import { BrowserRouter } from 'react-router-dom'
 import { createRoot } from 'react-dom/client'
 import './css/index.css'
 import { supabase } from './dbConnection'
@@ -49,7 +50,7 @@ function Root() {
   }
 
   return (
-    <>
+    <BrowserRouter>
       <Header
         isLoggedIn={isLoggedIn}
         onNavigate={(page) => setShowLogin(page === 'login')}
@@ -58,7 +59,7 @@ function Root() {
       {isLoggedIn ? <TripsFeed /> : <App />}
       <Footer />
       {showLogin && <Login onClose={() => setShowLogin(false)} />}
-    </>
+    </BrowserRouter>
   )
 }
 

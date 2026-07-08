@@ -14,7 +14,7 @@ if not url or not key:
 supabase: Client = create_client(url, key)
 
 app = Flask(__name__)
-CORS(app, resources={r"/*": {"origins": ["http://localhost:5173", "http://127.0.0.1:5173"]}}, allow_headers=["Content-Type", "Authorization"], methods=["GET", "POST", "OPTIONS"])
+CORS(app, resources={r"/*": {"origins": ["http://localhost:5173", "http://127.0.0.1:5173"]}}, allow_headers=["Content-Type", "Authorization"], methods=["GET", "POST", "OPTIONS", "PUT", "DELETE"])
 
 
 def get_authenticated_user():
@@ -61,6 +61,43 @@ def register_auth_user():
 
     return {"status": "error", "message": "Unauthorized."}, 401
 
+def extract_school_from_email(email):
+    school = email.split('@')[1].replace('.edu', '')
+    return school.capitalize()
+
+@app.route('/api/profile', methods=['GET', 'PUT'])
+def manage_profile():
+    user = get_authenticated_user()
+
+    if not user:
+        return {"status": "error", "message": "Unauthorized."}, 401
+
+    if request.method == 'GET':
+        try:
+            res = supabase.table('users').select('*').eq('id', user.id).execute()
+            if res.data:
+                return {"status": "success", "profile": res.data[0]}, 200
+            return {"status": "error", "message": "Profile not found."}, 404
+        except Exception as e:
+            return {"status": "error", "message": f"Error fetching profile: {e}"}, 500
+
+    if request.method == 'PUT':
+        try:
+            data = request.json
+            verify_school = extract_school_from_email(user.email)
+
+            update_data = {
+                'first_name': data.get('first_name'),
+                'last_name': data.get('last_name'),
+                'role': data.get('role'),
+                'profile_picture': data.get('profile_picture'),
+                'school': verify_school
+                }
+
+            res = supabase.table('users').update(update_data).eq('id', user.id).execute()
+            return {"status": "success", "profile": res.data[0]}, 200
+        except Exception as e:
+            return {"status": "error", "message": f"Error updating profile: {e}"}, 500
 
 @app.route('/api/test', methods=['GET'])
 def test_auth():
