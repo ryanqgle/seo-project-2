@@ -1,70 +1,73 @@
-import { StrictMode, useState, React, useEffect } from 'react'
-import { BrowserRouter } from 'react-router-dom'
+import { StrictMode, useState, useEffect } from 'react'
 import { createRoot } from 'react-dom/client'
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import './css/index.css'
-import { supabase } from './dbConnection'
+import { AuthProvider, useAuth } from './auth.jsx'
 import Header from './components/header.jsx'
 import Footer from './components/footer.jsx'
 import Login from './components/login.jsx'
-import App from './components/App.jsx'
+import Home from './components/Home.jsx'
 import TripsFeed from './components/TripsFeed.jsx'
+import UserProfile from './components/UserProfile.jsx'
 
-function Root() {
+// Wraps routes that require a logged-in user. While the session is still
+// loading we render nothing so we don't redirect prematurely; once loaded, an
+// unauthenticated user is sent back to the home page.
+function ProtectedRoute({ children }) {
+  const { isLoggedIn, loading } = useAuth()
+  if (loading) return null
+  if (!isLoggedIn) return <Navigate to="/" replace />
+  return children
+}
+
+function Shell() {
+  const { isLoggedIn, logout } = useAuth()
   const [showLogin, setShowLogin] = useState(false)
-  const [session, setSession] = useState(null)
 
+  // Close the login modal automatically once the user is logged in.
   useEffect(() => {
-    // Restore an existing session on load so a logged-in user goes straight
-    // to the feed without logging in again.
-    supabase.auth.getSession().then(({ data }) => setSession(data.session))
-
-    // updates on sign-in (including after the Google redirect), sign-out, and
-    // token refresh — keeps our view in sync with the auth state.
-    const { data: sub } = supabase.auth.onAuthStateChange((_event, next) => {
-      // Only .edu accounts are allowed; reject anything else.
-      if (next && !next.user.email?.endsWith('.edu')) {
-        alert('Please log in with a valid .edu email.')
-        supabase.auth.signOut()
-        return
-      }
-      setSession(next)
-      if (next) setShowLogin(false)
-    })
-
-    return () => sub.subscription.unsubscribe()
-  }, [])
-
-  useEffect(() => {
-    // After sign-in, make sure the user exists in our `users` table.
-    if (!session) return
-    fetch('/api/auth', {
-      method: 'POST',
-      headers: { Authorization: `Bearer ${session.access_token}` },
-    }).catch(() => {})
-  }, [session])
-
-  const isLoggedIn = !!session
-
-  const handleLogout = () => {
-    supabase.auth.signOut()
-  }
+    if (isLoggedIn) setShowLogin(false)
+  }, [isLoggedIn])
 
   return (
-    <BrowserRouter>
+    <>
       <Header
         isLoggedIn={isLoggedIn}
-        onNavigate={(page) => setShowLogin(page === 'login')}
-        onLogout={handleLogout}
+        onLogin={() => setShowLogin(true)}
+        onLogout={logout}
       />
-      {isLoggedIn ? <TripsFeed /> : <App />}
+      <Routes>
+        <Route path="/" element={<Home />} />
+        <Route
+          path="/feed"
+          element={
+            <ProtectedRoute>
+              <TripsFeed />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/profile"
+          element={
+            <ProtectedRoute>
+              <UserProfile />
+            </ProtectedRoute>
+          }
+        />
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
       <Footer />
       {showLogin && <Login onClose={() => setShowLogin(false)} />}
-    </BrowserRouter>
+    </>
   )
 }
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
-    <Root />
+    <BrowserRouter>
+      <AuthProvider>
+        <Shell />
+      </AuthProvider>
+    </BrowserRouter>
   </StrictMode>,
 )

@@ -75,6 +75,10 @@ function TripsFeed() {
               {trip.description && (
                 <p className="trip-card__desc">{trip.description}</p>
               )}
+              {/* TO DO: Displays request sent msg and have it send a request to the user thru backend */}
+              <button className="trip-card__join" type="button">
+                Join Trip
+              </button>
             </li>
           ))}
         </ul>
