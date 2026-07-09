@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { supabase } from '../dbConnection'
 
 function DriverRequests() {
   const [trips, setTrips] = useState([])
@@ -6,12 +7,13 @@ function DriverRequests() {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    const token = localStorage.getItem('supabaseToken')
+    const { data: { session } } = supabase.auth.getSession()
+    if (!session) return
 
     const loadRequests = async () => {
       try {
         const profileRes = await fetch('http://127.0.0.1:5001/api/profile', {
-          headers: { 'Authorization': `Bearer ${token}` }
+          headers: { 'Authorization': `Bearer ${session.access_token}` }
         })
         const profileData = await profileRes.json()
         const myId = profileData.profile.id
@@ -38,13 +40,14 @@ function DriverRequests() {
   }, [])
 
   const handleDecision = async (tripId, requestId, status) => {
-    const token = localStorage.getItem('supabaseToken')
+    const { data: { session } } = await supabase.auth.getSession()
+    if (!session) return
 
     try {
       const res = await fetch(`http://127.0.0.1:5001/api/trips/${tripId}/requests/${requestId}`, {
         method: 'PATCH',
         headers: {
-          'Authorization': `Bearer ${token}`,
+          'Authorization': `Bearer ${session.access_token}`,
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({ status })
@@ -72,7 +75,7 @@ function DriverRequests() {
           {(requestsByTrip[trip.id] || []).length === 0 && <p>No requests yet.</p>}
           {(requestsByTrip[trip.id] || []).map((request) => (
             <div key={request.id}>
-              <span>{request.Users?.first_name} {request.Users?.last_name} — {request.status}</span>
+              <span>{request.users?.first_name} {request.users?.last_name} — {request.status}</span>
               {request.status === 'pending' && (
                 <>
                   <button type="button" onClick={() => handleDecision(trip.id, request.id, 'accepted')}>Accept</button>

@@ -68,14 +68,14 @@ def profile():
 
     user_id = session['user_id']
 
-    user_result = supabase.table('Users').select('*').eq('id', user_id).single().execute()
+    user_result = supabase.table('users').select('*').eq('id', user_id).single().execute()
     user = user_result.data
 
     posted_result = supabase.table('Trips').select('*') \
         .eq('driver_id', user_id).order('departure_time', desc=True).execute()
     posted_trips = posted_result.data
 
-    joined_result = supabase.table('TripRequests').select('*, Trips(*)') \
+    joined_result = supabase.table('trip_requests').select('*, Trips(*)') \
         .eq('passenger_id', user_id).order('requested_at', desc=True).execute()
     joined_requests = joined_result.data
 

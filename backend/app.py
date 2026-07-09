@@ -159,6 +159,9 @@ from trips import trips_bp
 
 app.register_blueprint(trips_bp)
 
+from requests import requests_bp
+app.register_blueprint(requests_bp)
+
 
 if __name__ == '__main__':
     app.run(debug=True, port=5000)

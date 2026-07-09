@@ -1,9 +1,9 @@
 # User Stories
 
-### New Users
+### New users
 - As a new user, I want to sign in with my university credentials,so that I don’t create yet another password and my student status is verified automatically.
 
-### Regular Users
+### Regular users
 - As a user on the website, I want it to be easy to see where the available drivers are going so that I can pick the best route for me.
 - As a user, I want to report someone and block them, so that a bad interaction doesn’t repeat.
 - As a user without a car, I want to carpool so that I can get to where I want to go quickly without having to spend an exorbitant amount of money.

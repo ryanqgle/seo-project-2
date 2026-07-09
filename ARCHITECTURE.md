@@ -34,7 +34,7 @@ Lets users do the following:
 
 Our SQL-based database is hosted on Supabase to securely store account information, trip information, and in anticipation of a chatting system.
 
-### `Users` table
+### `users` table
 
 | Field | Type | Description |
 |---|---|---|
@@ -65,7 +65,7 @@ Our SQL-based database is hosted on Supabase to securely store account informati
 | `status` | VARCHAR | Trip status (e.g. completed) |
 | `created_at` | TIMESTAMP | Time at which the user's account was created |
 
-### `TripRequests` table
+### `trip_requests` table
 
 | Field | Type | Description |
 |---|---|---|
