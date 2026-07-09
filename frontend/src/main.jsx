@@ -1,6 +1,7 @@
 import { StrictMode, useState, React, useEffect } from 'react'
 import { BrowserRouter } from 'react-router-dom'
 import { createRoot } from 'react-dom/client'
+import { ChakraProvider } from '@chakra-ui/react'
 import './css/index.css'
 import { supabase } from './dbConnection'
 import Header from './components/header.jsx'
@@ -8,6 +9,9 @@ import Footer from './components/footer.jsx'
 import Login from './components/login.jsx'
 import App from './components/App.jsx'
 import TripsFeed from './components/TripsFeed.jsx'
+import { Routes, Route } from 'react-router-dom'
+import Home from './components/Home.jsx' 
+import UserProfile from './components/UserProfile.jsx'
 
 function Root() {
   const [showLogin, setShowLogin] = useState(false)
@@ -50,16 +54,21 @@ function Root() {
   }
 
   return (
-    <BrowserRouter>
-      <Header
-        isLoggedIn={isLoggedIn}
-        onNavigate={(page) => setShowLogin(page === 'login')}
-        onLogout={handleLogout}
-      />
-      {isLoggedIn ? <TripsFeed /> : <App />}
-      <Footer />
-      {showLogin && <Login onClose={() => setShowLogin(false)} />}
-    </BrowserRouter>
+    <ChakraProvider>
+      <BrowserRouter>
+        <Header
+          isLoggedIn={isLoggedIn}
+          onNavigate={(page) => setShowLogin(page === 'login')}
+          onLogout={handleLogout}
+        />
+        <Routes>
+           <Route path="/" element={isLoggedIn ? <TripsFeed /> : <Home />} />
+           <Route path="/edit-profile" element={<UserProfile />} />
+        </Routes>
+        <Footer />
+        {showLogin && <Login onClose={() => setShowLogin(false)} />}
+      </BrowserRouter>
+    </ChakraProvider>
   )
 }
 

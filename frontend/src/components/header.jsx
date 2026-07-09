@@ -11,7 +11,7 @@ function Header({ onNavigate, isLoggedIn, onLogout }) {
       </Link>
       <nav className="site-header__nav">
         <Link to="/" >Home</Link>
-        <Link to="/profile" >Profile</Link>
+        <Link to="/edit-profile" >Profile</Link>
         <Link to="/about" >About</Link>
 
         {isLoggedIn ? (

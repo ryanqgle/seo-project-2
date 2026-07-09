@@ -65,7 +65,7 @@ def extract_school_from_email(email):
     school = email.split('@')[1].replace('.edu', '')
     return school.capitalize()
 
-@app.route('/api/profile', methods=['GET', 'PUT'])
+@app.route('/api/edit-profile', methods=['GET', 'PUT'])
 def manage_profile():
     user = get_authenticated_user()
 
@@ -165,10 +165,10 @@ def user_exists():
 
 
 # Import blueprints after `supabase` is defined so trips.py can import it
-from trips import trips_bp
+#from trips import trips_bp
 
-app.register_blueprint(trips_bp)
+#pp.register_blueprint(trips_bp)
 
 
 if __name__ == '__main__':
-    app.run(debug=True, port=5001)
+    app.run(debug=True, port=5000)

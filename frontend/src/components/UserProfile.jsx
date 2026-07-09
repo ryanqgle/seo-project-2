@@ -1,4 +1,19 @@
 import { useState, useEffect } from 'react'
+import { supabase } from '../dbConnection'
+import {
+    Box,
+    Button,
+    FormControl,
+    FormLabel,
+    Input,
+    Select,
+    Spinner,
+    VStack,
+    Card,
+    CardBody,
+    Center,
+    Heading
+} from '@chakra-ui/react'
 
 export default function UserProfile() {
     const [profile, setProfile] = useState({
@@ -12,17 +27,21 @@ export default function UserProfile() {
 
     useEffect(() => {
         const fetchProfile = async () => {
-            const token = localStorage.getItem('supabaseToken')
-            if (!token) return
+            const { data: { session } } = await supabase.auth.getSession()
+
+            if (!session) {
+                setLoading(false)
+                return
+            }
 
             try {
-                const res = await fetch('http://127.0.0.1:5000/api/profile', {
-                  headers: { 'Authorization': `Bearer ${token}` }
+                const res = await fetch('http://127.0.0.1:5000/api/edit-profile', {
+                  headers: { 'Authorization': `Bearer ${session.access_token}` }
                 })
                 const data = await res.json()
 
                 if (data.status === 'success') {
-                    setProfile(data.profile)
+                    setProfile(prevProfile => ({...prevProfile, ...data.profile }))
                 }
             } catch (err) {
                 console.error('Error fetching profile:', err)
@@ -37,13 +56,15 @@ export default function UserProfile() {
     const handleSave = async (e) => {
         e.preventDefault()
         setSaving(true)
-        const token = localStorage.getItem('supabaseToken')
+
+        const { data: { session } } = await supabase.auth.getSession()
+        if (!session) return
 
         try {
-            const res = await fetch('http://127.0.0.1:5000/api/profile', {
+            const res = await fetch('http://127.0.0.1:5000/api/edit-profile', {
              method: 'PUT',
              headers: {
-                'Authorization': `Bearer ${token}`,
+                'Authorization': `Bearer ${session.access_token}`,
                 'Content-Type': 'application/json'
              },
              body: JSON.stringify(profile)
@@ -65,59 +86,99 @@ export default function UserProfile() {
     setProfile({ ...profile, [e.target.name]: e.target.value });
     };
 
-    if (loading) return <p>Loading profile...</p>
+    if (loading) {
+        return (
+            <Center mt={20}>
+                <Spinner size="xl" color="blue.500" th />
+            </Center>
+        )
+    }
 
     return (
-        <>
-        <h2>Edit Profile</h2>
-        <form onSubmit={handleSave}>
-            <label>First Name:</label>
-            <input
-                name="first_name"
-                type="text"
-                value={profile.first_name || ''}
-                onChange={handleChange}
-            />
+    <Box p={4}>
+        <Card maxW="lg" maxW="lg" mx="auto" boxShadow="lg" borderRadius="xl">
+            <CardBody p={8}>
+                <Heading size="lg" mb={6} textAlign="center" color="gray.700">
+                    Edit Profile
+                </Heading>
+                 <form onSubmit={handleSave}>
+                    <VStack spacing={5}>
+                            
+                        <FormControl isRequired>
+                            <FormLabel fontSize="sm" fontWeight="bold">First Name</FormLabel>
+                            <Input
+                                    size="md"
+                                    name="first_name"
+                                    type="text"
+                                    value={profile.first_name || ''}
+                                    onChange={handleChange}
+                                />
+                        </FormControl>
 
-            <label>Last Name:</label>
-            <input
-                name="last_name"
-                type="text"
-                value={profile.last_name || ''}
-                onChange={handleChange}
-            />
+                        <FormControl isRequired>
+                            <FormLabel fontSize="sm" fontWeight="bold">Last Name</FormLabel>
+                            <Input
+                                    size="md"
+                                    name="last_name"
+                                    type="text"
+                                    value={profile.last_name || ''}
+                                    onChange={handleChange}
+                                />
+                        </FormControl>
 
-            <label>Role:</label>
-            <select
-                name="role"
-                value={profile.role || ''}
-                onChange={handleChange}
-            >
-                <option value="">Select a role</option>
-                <option value="driver">Driver</option>
-                <option value="passenger">Passenger</option>
-            </select>
+                        <FormControl isRequired>
+                                <FormLabel fontSize="sm" fontWeight="bold">Role</FormLabel>
+                                <Select
+                                    size="md"
+                                    name="role"
+                                    value={profile.role || ''}
+                                    onChange={handleChange}
+                                >
+                                    <option value="">Select a role</option>
+                                    <option value="driver">Driver</option>
+                                    <option value="passenger">Passenger</option>
+                                </Select>
+                            </FormControl>
 
-            <label>Profile Picture URL:</label>
-            <input
-                name="profile_picture"
-                type="text"
-                value={profile.profile_picture || ''}
-                onChange={handleChange}
-            />
+                            <FormControl>
+                                <FormLabel fontSize="sm" fontWeight="bold">Profile Picture URL</FormLabel>
+                                <Input
+                                    size="md"
+                                    name="profile_picture"
+                                    type="url"
+                                    value={profile.profile_picture || ''}
+                                    onChange={handleChange}
+                                />
+                            </FormControl>
 
-            <label>School:</label>
-            <input
-                name="school"
-                type="text"
-                value={profile.school || ''}
-                onChange={handleChange}
-            />
+                            <FormControl>
+                                <FormLabel fontSize="sm" fontWeight="bold">School (Auto-Verified)</FormLabel>
+                                <Input
+                                    size="md"
+                                    name="school"
+                                    type="text"
+                                    value={profile.school || 'Verified on Save'}
+                                    isReadOnly 
+                                    variant="filled" 
+                                />
+                            </FormControl>
 
-            <button type="submit" disabled={saving}>
-                {saving ? 'Saving...' : 'Save Changes'}
-            </button>
-        </form>
-    </>
+                            <Button
+                                type="submit" 
+                                colorScheme="blue" 
+                                size="lg" 
+                                w="full" 
+                                mt={4} 
+                                isLoading={saving} 
+                                loadingText="Saving..."
+                            >
+                                Save Changes
+                            </Button>
+                    </VStack>
+                </form>
+            </CardBody>
+        </Card>
+
+    </Box>
     )
 }

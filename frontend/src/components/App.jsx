@@ -41,7 +41,7 @@ function App() {
   return (
       <Routes>
         <Route path="/" element={<Home />} />
-        <Route path="/profile" element={<UserProfile />} />
+        <Route path="/edit-profile" element={<UserProfile />} />
       </Routes>
   )
 }
