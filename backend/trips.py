@@ -2,7 +2,7 @@ from datetime import datetime
 from flask import Blueprint, render_template, request, redirect, url_for, session, flash, jsonify
 
 
-from app import supabase
+from db import supabase
 
 trips_bp = Blueprint('trips', __name__)
 
@@ -13,7 +13,7 @@ CATEGORY_CHOICES = ['campus', 'grocery', 'airport', 'other']
 def get_trips():
     """Return open trips as JSON for the frontend feed, soonest departure first."""
     try:
-        result = supabase.table('trips').select('*') \
+        result = supabase.table('trips').select('*, users(first_name, last_name, profile_picture)') \
             .eq('status', 'open') \
             .order('departure_time', desc=False) \
             .execute()

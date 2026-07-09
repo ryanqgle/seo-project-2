@@ -1,5 +1,6 @@
 import { StrictMode, useState, useEffect } from 'react'
 import { createRoot } from 'react-dom/client'
+import { ChakraProvider } from '@chakra-ui/react'
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import './css/index.css'
 import { AuthProvider, useAuth } from './auth.jsx'
@@ -30,7 +31,7 @@ function Shell() {
   }, [isLoggedIn])
 
   return (
-    <>
+    <ChakraProvider>
       <Header
         isLoggedIn={isLoggedIn}
         onLogin={() => setShowLogin(true)}
@@ -58,7 +59,7 @@ function Shell() {
       </Routes>
       <Footer />
       {showLogin && <Login onClose={() => setShowLogin(false)} />}
-    </>
+    </ChakraProvider>
   )
 }
 

@@ -1,5 +1,19 @@
 import { useState, useEffect } from 'react'
-import '../css/tripsFeed.css'
+import {
+  Box, 
+  Center, 
+  Spinner, 
+  Text, 
+  VStack, 
+  Heading, 
+  Card, 
+  CardBody, 
+  Flex, 
+  Badge, 
+  Button,
+  HStack,
+  Avatar
+} from '@chakra-ui/react'
 
 function formatDeparture(value) {
   if (!value) return 'Time TBD'
@@ -41,49 +55,89 @@ function TripsFeed() {
   }, [])
 
   return (
-    <main className="feed">
-      <h1>Trips</h1>
+    <Box maxW="2xl" w="full" mx="auto" py={8} px={4}>
+      
+      <Heading size="xl" mb={6} color="gray.800">
+        Available Rides
+      </Heading>
 
-      {status === 'loading' && <p className="feed__note">Loading trips…</p>}
+      {status === 'loading' && (
+        <Center mt={20}>
+            <Spinner size="xl" color="blue.500" thickness="4px" />
+        </Center>
+      )}
 
       {status === 'error' && (
-        <p className="feed__note">
-          Couldn&apos;t load trips.
-        </p>
+        <Center mt={10}>
+            <Text color="red.500" fontSize="lg">Couldn't load trips. Please try again later.</Text>
+        </Center>
       )}
 
       {status === 'ready' && trips.length === 0 && (
-        <p className="feed__note">No trips posted yet.</p>
+        <Center mt={10}>
+            <Text color="gray.500" fontSize="lg">No trips posted yet. Check back soon!</Text>
+        </Center>
       )}
 
       {status === 'ready' && trips.length > 0 && (
-        <ul className="feed__list">
+        <VStack spacing={3} w="full" align="stretch">
           {trips.map((trip) => (
-            <li key={trip.id} className="trip-card">
-              <div className="trip-card__head">
-                <h2>{trip.title}</h2>
-                <span className="trip-card__cost">
-                  {trip.cost ? `$${trip.cost}` : 'Free'}
-                </span>
-              </div>
-              <p className="trip-card__dest">→ {trip.destination}</p>
-              <p className="trip-card__meta">
-                {formatDeparture(trip.departure_time)} · {trip.available_seats}{' '}
-                seat{trip.available_seats === 1 ? '' : 's'}
-                {trip.category ? ` · ${trip.category}` : ''}
-              </p>
-              {trip.description && (
-                <p className="trip-card__desc">{trip.description}</p>
-              )}
-              {/* TO DO: Displays request sent msg and have it send a request to the user thru backend */}
-              <button className="trip-card__join" type="button">
-                Join Trip
-              </button>
-            </li>
+            <Card key={trip.id} variant="outline" boxShadow="sm" borderRadius="xl" _hover={{ boxShadow: 'md' }}>
+              <CardBody p={4}>
+                <Flex align="center" mb={2}>
+                  <Avatar 
+                    size="sm" 
+                    name={`${trip.users?.first_name} ${trip.users?.last_name}`} 
+                    src={trip.users?.profile_picture} 
+                    mr={3} 
+                  />
+                  <Text fontWeight="bold" color="gray.700">
+                    Driver: {trip.users?.first_name || 'Unknown'} {trip.users?.last_name || 'Driver'}
+                  </Text>
+                </Flex>
+                <Flex justify="space-between" align="flex-start" mb={2}>
+                  <Heading size="md" color="gray.800">
+                    {trip.title}
+                  </Heading>
+                  <Badge colorScheme={trip.cost ? "green" : "blue"} fontSize="sm" px={2} py={1} borderRadius="md">
+                    {trip.cost ? `$${trip.cost}` : 'Free'}
+                  </Badge>
+                </Flex>
+
+                <Text textAlign="left" fontSize="lg" fontWeight="bold" color="blue.600" mb={2}>
+                  → To {trip.destination}
+                </Text>
+
+                <HStack spacing={2} color="gray.500" fontSize="sm" mb={4}>
+                  <Text>{formatDeparture(trip.departure_time)}</Text>
+                  <Text>•</Text>
+                  <Text fontWeight="bold">{trip.available_seats} seat{trip.available_seats === 1 ? '' : 's'} left</Text>
+                  {trip.category && (
+                    <>
+                      <Text>•</Text>
+                      <Text>{trip.category}</Text>
+                    </>
+                  )}
+                </HStack>
+
+                {trip.description && (
+                  <Text color="gray.600" mb={4}>
+                    {trip.description}
+                  </Text>
+                )}
+                
+                {/* TO DO: Displays request sent msg and have it send a request to the user thru backend */}
+                <Button colorScheme="blue" width="x" variant="solid" borderRadius="full" size="sm">
+                  Request to Join
+                </Button>
+
+              </CardBody>
+            </Card>
+
           ))}
-        </ul>
+        </VStack>
       )}
-    </main>
+    </Box>
   )
 }
 
