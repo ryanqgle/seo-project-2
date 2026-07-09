@@ -10,6 +10,7 @@ import Login from './components/login.jsx'
 import Home from './components/Home.jsx'
 import TripsFeed from './components/TripsFeed.jsx'
 import UserProfile from './components/UserProfile.jsx'
+import ProfileView from './components/ProfileView.jsx'
 
 // Wraps routes that require a logged-in user. While the session is still
 // loading we render nothing so we don't redirect prematurely; once loaded, an
@@ -49,6 +50,14 @@ function Shell() {
         />
         <Route
           path="/profile"
+          element={
+            <ProtectedRoute>
+              <ProfileView />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/edit-profile"
           element={
             <ProtectedRoute>
               <UserProfile />
