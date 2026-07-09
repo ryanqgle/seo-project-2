@@ -11,6 +11,7 @@ import Home from './components/Home.jsx'
 import TripsFeed from './components/TripsFeed.jsx'
 import UserProfile from './components/UserProfile.jsx'
 import ProfileView from './components/ProfileView.jsx'
+import CreateRideForm from './components/createRideForm.jsx'
 
 // Wraps routes that require a logged-in user. While the session is still
 // loading we render nothing so we don't redirect prematurely; once loaded, an
@@ -61,6 +62,14 @@ function Shell() {
           element={
             <ProtectedRoute>
               <UserProfile />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/create-ride"
+          element={
+            <ProtectedRoute>
+              <CreateRideForm />
             </ProtectedRoute>
           }
         />

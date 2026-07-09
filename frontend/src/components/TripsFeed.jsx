@@ -21,6 +21,8 @@ import {
   ModalBody,
   useDisclosure
 } from '@chakra-ui/react'
+import { useNavigate } from 'react-router-dom'
+import { useAuth } from '../auth.jsx'
 
 function formatDeparture(value) {
   if (!value) return 'Time TBD'
@@ -39,12 +41,34 @@ function TripsFeed() {
   const [trips, setTrips] = useState([])
   const [status, setStatus] = useState('loading') // 'loading' | 'error' | 'ready'
   const [selectedDriver, setSelectedDriver] = useState(null)
+  const [role, setRole] = useState(null)
   const { isOpen, onOpen, onClose } = useDisclosure()
+  const { token } = useAuth()
+  const navigate = useNavigate()
 
   const openDriver = (driver) => {
     setSelectedDriver(driver)
     onOpen()
   }
+
+  // Load the current user's role so we can show driver-only create button.
+  useEffect(() => {
+    if (!token) return
+    let active = true
+
+    fetch('/api/edit-profile', {
+      headers: { 'Authorization': `Bearer ${token}` },
+    })
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (active && data?.status === 'success') setRole(data.profile?.role ?? null)
+      })
+      .catch(() => {})
+
+    return () => {
+      active = false
+    }
+  }, [token])
 
   useEffect(() => {
     let active = true
@@ -71,9 +95,20 @@ function TripsFeed() {
   return (
     <Box maxW="2xl" w="full" mx="auto" py={8} px={4}>
       
-      <Heading size="xl" mb={6} color="gray.800">
-        Available Rides
-      </Heading>
+      <Flex justify="space-between" align="center" mb={6}>
+        <Heading size="xl" color="gray.800">
+          Available Rides
+        </Heading>
+        {role === 'driver' && (
+          <Button
+            colorScheme="blue"
+            borderRadius="full"
+            onClick={() => navigate('/create-ride')}
+          >
+            + Create Ride
+          </Button>
+        )}
+      </Flex>
 
       {status === 'loading' && (
         <Center mt={20}>
