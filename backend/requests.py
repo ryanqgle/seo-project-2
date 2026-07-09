@@ -20,32 +20,36 @@ def get_requests(trip_id):
 def create_request(trip_id):
     from app import get_authenticated_user
 
-    user = get_authenticated_user()
-    if not user:
-        return jsonify({'error': 'Unauthorized'}), 401
+    try:
+        user = get_authenticated_user()
+        if not user:
+            return jsonify({'error': 'Unauthorized'}), 401
 
-    trip_result = supabase.table('Trips').select('*').eq('id', trip_id).execute()
-    if not trip_result.data:
-        return jsonify({'error': 'Trip not found'}), 404
-    trip = trip_result.data[0]
+        trip_result = supabase.table('trips').select('*').eq('id', trip_id).execute()
+        if not trip_result.data:
+            return jsonify({'error': 'Trip not found'}), 404
+        trip = trip_result.data[0]
 
-    if trip['driver_id'] == user.id:
-        return jsonify({'error': "You can't request your own trip"}), 400
+        if trip['driver_id'] == user.id:
+            return jsonify({'error': "You can't request your own trip"}), 400
 
-    if trip['available_seats'] < 1:
-        return jsonify({'error': 'No seats left on this trip'}), 400
+        if trip['available_seats'] < 1:
+            return jsonify({'error': 'No seats left on this trip'}), 400
 
-    result = supabase.table('trip_requests').insert({
-        'trip_id': trip_id,
-        'passenger_id': user.id,
-        'status': 'pending'
-    }).execute()
-    return jsonify(result.data[0]), 201
+        result = supabase.table('trip_requests').insert({
+            'trip_id': trip_id,
+            'passenger_id': user.id,
+            'status': 'pending'
+        }).execute()
+        return jsonify(result.data[0]),201
+    except Exception as error:
+        print(f"Error creating request: {error}")
+        return jsonify({'error': str(error)}), 500
 
 @requests_bp.route('/api/trips/<int:trip_id>/requests/<int:request_id>', methods=['PATCH'])
 def update_request(trip_id, request_id):
     from app import get_authenticated_user
-    
+
     user = get_authenticated_user()
     if not user:
         return jsonify({'error': 'Unauthorized'}), 401
@@ -55,7 +59,7 @@ def update_request(trip_id, request_id):
         return jsonify({'error': "status must be 'accepted' or 'declined'"}), 400
 
     try:
-        trip_result = supabase.table('Trips').select('*').eq('id', trip_id).execute()
+        trip_result = supabase.table('trips').select('*').eq('id', trip_id).execute()
         if not trip_result.data:
             return jsonify({'error': 'Trip not found'}), 404
         trip = trip_result.data[0]
@@ -71,7 +75,7 @@ def update_request(trip_id, request_id):
             trip_update = {'available_seats': new_seats}
             if new_seats == 0:
                 trip_update['status'] = 'full'
-            supabase.table('Trips').update(trip_update).eq('id', trip_id).execute()
+            supabase.table('trips').update(trip_update).eq('id', trip_id).execute()
 
         result = supabase.table('trip_requests').update({'status': new_status}) \
             .eq('id', request_id).execute()
