@@ -32,7 +32,7 @@ function CreateRideForm() {
     const token = localStorage.getItem('supabaseToken')
 
     try {
-      const res = await fetch('http://127.0.0.1:5001/api/trips', {
+      const res = await fetch('/api/trips', {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,

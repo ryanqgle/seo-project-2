@@ -20,7 +20,7 @@ function App() {
           console.log("Successfully logged in")
 
           try {
-            const res = fetch('http://127.0.0.1:5000/api/auth', {
+            const res = fetch('/api/auth', {
               method: 'POST',
               headers: {
                 'Authorization': `Bearer ${session.access_token}`

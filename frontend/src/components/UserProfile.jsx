@@ -32,7 +32,7 @@ export default function UserProfile() {
             if (!token) return
 
             try {
-                const res = await fetch('/api/profile', {
+                const res = await fetch('/api/edit-profile', {
                   headers: { 'Authorization': `Bearer ${token}` }
                 })
                 const data = await res.json()
@@ -55,10 +55,10 @@ export default function UserProfile() {
         setSaving(true)
 
         try {
-            const res = await fetch('/api/profile', {
+            const res = await fetch('/api/edit-profile', {
              method: 'PUT',
              headers: {
-                'Authorization': `Bearer ${session.access_token}`,
+                'Authorization': `Bearer ${token}`,
                 'Content-Type': 'application/json'
              },
              body: JSON.stringify(profile)
@@ -67,7 +67,7 @@ export default function UserProfile() {
 
             if (data.status === 'success') {
                 alert('Profile updated successfully!')
-                setProfile(data.profile)
+                setProfile(prevProfile => ({...prevProfile, ...data.profile }))
             }
         } catch (err) {
             console.error('Error updating profile:', err)
@@ -83,7 +83,7 @@ export default function UserProfile() {
     if (loading) {
         return (
             <Center mt={20}>
-                <Spinner size="xl" color="blue.500" th />
+                <Spinner size="xl" color="blue.500"  />
             </Center>
         )
     }

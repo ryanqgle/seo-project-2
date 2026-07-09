@@ -1,6 +1,6 @@
 from flask import Blueprint, request, jsonify
 
-from db import supabase, get_authenticated_user
+from db import supabase
 
 requests_bp = Blueprint('requests', __name__)
 
@@ -18,6 +18,8 @@ def get_requests(trip_id):
 
 @requests_bp.route('/api/trips/<int:trip_id>/requests', methods=['POST'])
 def create_request(trip_id):
+    from app import get_authenticated_user
+
     user = get_authenticated_user()
     if not user:
         return jsonify({'error': 'Unauthorized'}), 401
@@ -42,6 +44,8 @@ def create_request(trip_id):
 
 @requests_bp.route('/api/trips/<int:trip_id>/requests/<int:request_id>', methods=['PATCH'])
 def update_request(trip_id, request_id):
+    from app import get_authenticated_user
+    
     user = get_authenticated_user()
     if not user:
         return jsonify({'error': 'Unauthorized'}), 401

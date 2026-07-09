@@ -7,12 +7,18 @@ function DriverRequests() {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    const { data: { session } } = supabase.auth.getSession()
-    if (!session) return
 
     const loadRequests = async () => {
+      const response = await supabase.auth.getSession()
+      const session = response?.data?.session
+      
+      if (!session) {
+        setLoading(false)
+        return
+      }
+
       try {
-        const profileRes = await fetch('http://127.0.0.1:5001/api/profile', {
+        const profileRes = await fetch('/api/edit-profile', {
           headers: { 'Authorization': `Bearer ${session.access_token}` }
         })
         const profileData = await profileRes.json()
@@ -25,7 +31,7 @@ function DriverRequests() {
 
         const requests = {}
         for (const trip of myTrips) {
-          const res = await fetch(`http://127.0.0.1:5001/api/trips/${trip.id}/requests`)
+          const res = await fetch(`/api/trips/${trip.id}/requests`)
           requests[trip.id] = await res.json()
         }
         setRequestsByTrip(requests)
@@ -40,11 +46,13 @@ function DriverRequests() {
   }, [])
 
   const handleDecision = async (tripId, requestId, status) => {
-    const { data: { session } } = await supabase.auth.getSession()
+    const response = await supabase.auth.getSession()
+    const session = response?.data?.session
+
     if (!session) return
 
     try {
-      const res = await fetch(`http://127.0.0.1:5001/api/trips/${tripId}/requests/${requestId}`, {
+      const res = await fetch(`/api/trips/${tripId}/requests/${requestId}`, {
         method: 'PATCH',
         headers: {
           'Authorization': `Bearer ${session.access_token}`,
