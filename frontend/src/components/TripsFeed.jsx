@@ -12,8 +12,17 @@ import {
   Badge, 
   Button,
   HStack,
-  Avatar
+  Avatar,
+  Modal,
+  ModalOverlay,
+  ModalContent,
+  ModalHeader,
+  ModalCloseButton,
+  ModalBody,
+  useDisclosure
 } from '@chakra-ui/react'
+import { useNavigate } from 'react-router-dom'
+import { useAuth } from '../auth.jsx'
 
 function formatDeparture(value) {
   if (!value) return 'Time TBD'
@@ -31,6 +40,35 @@ function formatDeparture(value) {
 function TripsFeed() {
   const [trips, setTrips] = useState([])
   const [status, setStatus] = useState('loading') // 'loading' | 'error' | 'ready'
+  const [selectedDriver, setSelectedDriver] = useState(null)
+  const [role, setRole] = useState(null)
+  const { isOpen, onOpen, onClose } = useDisclosure()
+  const { token } = useAuth()
+  const navigate = useNavigate()
+
+  const openDriver = (driver) => {
+    setSelectedDriver(driver)
+    onOpen()
+  }
+
+  // Load the current user's role so we can show driver-only create button.
+  useEffect(() => {
+    if (!token) return
+    let active = true
+
+    fetch('/api/edit-profile', {
+      headers: { 'Authorization': `Bearer ${token}` },
+    })
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (active && data?.status === 'success') setRole(data.profile?.role ?? null)
+      })
+      .catch(() => {})
+
+    return () => {
+      active = false
+    }
+  }, [token])
 
   useEffect(() => {
     let active = true
@@ -57,9 +95,20 @@ function TripsFeed() {
   return (
     <Box maxW="2xl" w="full" mx="auto" py={8} px={4}>
       
-      <Heading size="xl" mb={6} color="gray.800">
-        Available Rides
-      </Heading>
+      <Flex justify="space-between" align="center" mb={6}>
+        <Heading size="xl" color="gray.800">
+          Available Rides
+        </Heading>
+        {role === 'driver' && (
+          <Button
+            colorScheme="blue"
+            borderRadius="full"
+            onClick={() => navigate('/create-ride')}
+          >
+            + Create Ride
+          </Button>
+        )}
+      </Flex>
 
       {status === 'loading' && (
         <Center mt={20}>
@@ -84,12 +133,22 @@ function TripsFeed() {
           {trips.map((trip) => (
             <Card key={trip.id} variant="outline" boxShadow="sm" borderRadius="xl" _hover={{ boxShadow: 'md' }}>
               <CardBody p={4}>
-                <Flex align="center" mb={2}>
-                  <Avatar 
-                    size="sm" 
-                    name={`${trip.users?.first_name} ${trip.users?.last_name}`} 
-                    src={trip.users?.profile_picture} 
-                    mr={3} 
+                <Flex
+                  align="center"
+                  mb={2}
+                  cursor="pointer"
+                  onClick={() => openDriver(trip.users)}
+                  role="button"
+                  borderRadius="md"
+                  p={1}
+                  m={-1}
+                  _hover={{ bg: 'gray.50' }}
+                >
+                  <Avatar
+                    size="sm"
+                    name={`${trip.users?.first_name} ${trip.users?.last_name}`}
+                    src={trip.users?.profile_picture}
+                    mr={3}
                   />
                   <Text fontWeight="bold" color="gray.700">
                     Driver: {trip.users?.first_name || 'Unknown'} {trip.users?.last_name || 'Driver'}
@@ -137,6 +196,34 @@ function TripsFeed() {
           ))}
         </VStack>
       )}
+
+      <Modal isOpen={isOpen} onClose={onClose} isCentered>
+        <ModalOverlay />
+        <ModalContent borderRadius="xl">
+          <ModalHeader>Driver Profile</ModalHeader>
+          <ModalCloseButton />
+          <ModalBody pb={6}>
+            <VStack spacing={4}>
+              <Avatar
+                size="xl"
+                name={`${selectedDriver?.first_name || ''} ${selectedDriver?.last_name || ''}`}
+                src={selectedDriver?.profile_picture}
+              />
+              <Heading size="md" color="gray.800">
+                {selectedDriver?.first_name || 'Unknown'} {selectedDriver?.last_name || 'Driver'}
+              </Heading>
+              {selectedDriver?.role && (
+                <Badge colorScheme="blue" fontSize="sm" px={2} py={1} borderRadius="md">
+                  {selectedDriver.role}
+                </Badge>
+              )}
+              {selectedDriver?.school && (
+                <Text color="gray.600">{selectedDriver.school}</Text>
+              )}
+            </VStack>
+          </ModalBody>
+        </ModalContent>
+      </Modal>
     </Box>
   )
 }

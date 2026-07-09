@@ -12,6 +12,8 @@ import TripsFeed from './components/TripsFeed.jsx'
 import UserProfile from './components/UserProfile.jsx'
 import DriverRequests from './components/DriverRequests.jsx'
 import { supabase } from './dbConnection'
+import ProfileView from './components/ProfileView.jsx'
+import CreateRideForm from './components/createRideForm.jsx'
 
 // Wraps routes that require a logged-in user. While the session is still
 // loading we render nothing so we don't redirect prematurely; once loaded, an
@@ -79,6 +81,14 @@ function Shell() {
           path="/edit-profile"
           element={
             <ProtectedRoute>
+              <ProfileView />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/edit-profile"
+          element={
+            <ProtectedRoute>
               <UserProfile />
             </ProtectedRoute>
           }
@@ -91,7 +101,13 @@ function Shell() {
             </ProtectedRoute>
           } 
         />
-
+          path="/create-ride"
+          element={
+            <ProtectedRoute>
+              <CreateRideForm />
+            </ProtectedRoute>
+          }
+        />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
       <Footer />

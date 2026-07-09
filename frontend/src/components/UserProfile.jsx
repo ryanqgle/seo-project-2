@@ -15,9 +15,11 @@ import {
     Heading
 } from '@chakra-ui/react'
 import { useAuth } from '../auth.jsx'
+import { useNavigate } from 'react-router-dom'
 
 export default function UserProfile() {
     const { token } = useAuth()
+    const navigate = useNavigate()
     const [profile, setProfile] = useState({
         first_name: '',
         last_name: '',
@@ -68,6 +70,7 @@ export default function UserProfile() {
             if (data.status === 'success') {
                 alert('Profile updated successfully!')
                 setProfile(prevProfile => ({...prevProfile, ...data.profile }))
+                navigate('/profile')
             }
         } catch (err) {
             console.error('Error updating profile:', err)
