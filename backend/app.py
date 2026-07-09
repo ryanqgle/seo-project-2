@@ -154,6 +154,47 @@ def user_exists():
         return {"exists": False, "error": "lookup failed"}, 500
 
 
+@app.route('/api/trips', methods=['POST'])
+def create_trip_api():
+    """Create a trip from the frontend Post-a-Ride form (JSON + bearer token)."""
+    user = get_authenticated_user()
+
+    if not user:
+        return {"status": "error", "message": "Unauthorized."}, 401
+
+    try:
+        data = request.json or {}
+
+        title = (data.get('title') or '').strip()
+        destination = (data.get('destination') or '').strip()
+        departure_time = data.get('departure_time')
+
+        if not title or not destination or not departure_time:
+            return {
+                "status": "error",
+                "message": "Title, destination, and departure time are required.",
+            }, 400
+
+        new_trip = {
+            'driver_id': user.id,
+            'title': title,
+            'destination': destination,
+            'departure_time': departure_time,
+            'category': data.get('category'),
+            'available_seats': int(data.get('available_seats') or 1),
+            'cost': float(data.get('cost') or 0),
+            'description': data.get('description'),
+            'round_trip': bool(data.get('round_trip')),
+            'status': 'open',
+        }
+
+        res = supabase.table('trips').insert(new_trip).execute()
+        return {"status": "success", "trip": res.data[0]}, 201
+    except Exception as e:
+        print(f"Error creating trip: {e}")
+        return {"status": "error", "message": f"Error creating trip: {e}"}, 500
+
+
 # Import blueprints after `supabase` is defined so trips.py can import it
 from trips import trips_bp
 
