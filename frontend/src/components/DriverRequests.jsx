@@ -48,6 +48,7 @@ function DriverRequests() {
         for (const trip of myTrips) {
           const res = await fetch(`/api/trips/${trip.id}/requests`)
           requests[trip.id] = await res.json()
+          console.log(`Raw data for trip ${trip.id}:`, requests[trip.id])
         }
         setRequestsByTrip(requests)
       } catch (err) {

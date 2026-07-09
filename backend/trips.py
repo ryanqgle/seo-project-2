@@ -71,7 +71,7 @@ def profile():
     user_result = supabase.table('users').select('*').eq('id', user_id).single().execute()
     user = user_result.data
 
-    posted_result = supabase.table('Trips').select('*') \
+    posted_result = supabase.table('trips').select('*') \
         .eq('driver_id', user_id).order('departure_time', desc=True).execute()
     posted_trips = posted_result.data
 
