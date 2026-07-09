@@ -1,5 +1,27 @@
 import { useState } from 'react'
-import '../css/createRide.css'
+import { useNavigate } from 'react-router-dom'
+import {
+  Box,
+  Button,
+  Card,
+  CardBody,
+  Checkbox,
+  FormControl,
+  FormLabel,
+  Heading,
+  Input,
+  InputGroup,
+  InputLeftElement,
+  NumberInput,
+  NumberInputField,
+  Select,
+  SimpleGrid,
+  Textarea,
+  VStack,
+  Alert,
+  AlertIcon
+} from '@chakra-ui/react'
+import { useAuth } from '../auth.jsx'
 
 const CATEGORY_CHOICES = ['campus', 'grocery', 'airport', 'other']
 
@@ -15,6 +37,8 @@ const initialForm = {
 }
 
 function CreateRideForm() {
+  const { token } = useAuth()
+  const navigate = useNavigate()
   const [form, setForm] = useState(initialForm)
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState('')
@@ -28,8 +52,6 @@ function CreateRideForm() {
     e.preventDefault()
     setError('')
     setSubmitting(true)
-
-    const token = localStorage.getItem('supabaseToken')
 
     try {
       const res = await fetch('/api/trips', {
@@ -47,8 +69,7 @@ function CreateRideForm() {
       const data = await res.json()
 
       if (data.status === 'success') {
-        alert('Ride posted!')
-        setForm(initialForm)
+        navigate('/feed')
       } else {
         setError(data.message || 'Could not post ride.')
       }
@@ -61,46 +82,128 @@ function CreateRideForm() {
   }
 
   return (
-    <>
-      <h2>Post a Ride</h2>
-      <form onSubmit={handleSubmit}>
-        <label>Title:</label>
-        <input name="title" type="text" value={form.title} onChange={handleChange} required />
+    <Box p={4}>
+      <Card maxW="lg" mx="auto" boxShadow="lg" borderRadius="xl">
+        <CardBody p={8}>
+          <Heading size="lg" mb={6} textAlign="center" color="gray.700">
+            Post a Ride
+          </Heading>
 
-        <label>Destination:</label>
-        <input name="destination" type="text" value={form.destination} onChange={handleChange} required />
+          <form onSubmit={handleSubmit}>
+            <VStack spacing={5} align="stretch">
+              <FormControl isRequired>
+                <FormLabel fontSize="sm" fontWeight="bold">Title</FormLabel>
+                <Input
+                  name="title"
+                  value={form.title}
+                  onChange={handleChange}
+                  placeholder="Quick run to Target"
+                />
+              </FormControl>
 
-        <label>Departure Time:</label>
-        <input name="departure_time" type="datetime-local" value={form.departure_time} onChange={handleChange} required />
+              <FormControl isRequired>
+                <FormLabel fontSize="sm" fontWeight="bold">Destination</FormLabel>
+                <Input
+                  name="destination"
+                  value={form.destination}
+                  onChange={handleChange}
+                  placeholder="Target, Downtown"
+                />
+              </FormControl>
 
-        <label>Category:</label>
-        <select name="category" value={form.category} onChange={handleChange}>
-          {CATEGORY_CHOICES.map((c) => (
-            <option key={c} value={c}>{c}</option>
-          ))}
-        </select>
+              <FormControl isRequired>
+                <FormLabel fontSize="sm" fontWeight="bold">Departure Time</FormLabel>
+                <Input
+                  name="departure_time"
+                  type="datetime-local"
+                  value={form.departure_time}
+                  onChange={handleChange}
+                />
+              </FormControl>
 
-        <label>Available Seats:</label>
-        <input name="available_seats" type="number" min="1" value={form.available_seats} onChange={handleChange} required />
+              <SimpleGrid columns={2} spacing={4}>
+                <FormControl isRequired>
+                  <FormLabel fontSize="sm" fontWeight="bold">Category</FormLabel>
+                  <Select name="category" value={form.category} onChange={handleChange}>
+                    {CATEGORY_CHOICES.map((c) => (
+                      <option key={c} value={c}>{c}</option>
+                    ))}
+                  </Select>
+                </FormControl>
 
-        <label>Cost:</label>
-        <input name="cost" type="number" min="0" step="0.01" value={form.cost} onChange={handleChange} required />
+                <FormControl isRequired>
+                  <FormLabel fontSize="sm" fontWeight="bold">Available Seats</FormLabel>
+                  <NumberInput
+                    min={1}
+                    value={form.available_seats}
+                    onChange={(valueString) =>
+                      setForm((f) => ({ ...f, available_seats: valueString }))
+                    }
+                  >
+                    <NumberInputField name="available_seats" />
+                  </NumberInput>
+                </FormControl>
+              </SimpleGrid>
 
-        <label>Description:</label>
-        <textarea name="description" value={form.description} onChange={handleChange} />
+              <FormControl isRequired>
+                <FormLabel fontSize="sm" fontWeight="bold">Cost</FormLabel>
+                <InputGroup>
+                  <InputLeftElement pointerEvents="none" color="gray.400">$</InputLeftElement>
+                  <Input
+                    name="cost"
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    value={form.cost}
+                    onChange={handleChange}
+                    placeholder="0.00"
+                  />
+                </InputGroup>
+              </FormControl>
 
-        <label>
-          <input name="round_trip" type="checkbox" checked={form.round_trip} onChange={handleChange} />
-          Round trip
-        </label>
+              <FormControl>
+                <FormLabel fontSize="sm" fontWeight="bold">Description</FormLabel>
+                <Textarea
+                  name="description"
+                  value={form.description}
+                  onChange={handleChange}
+                  placeholder="Anything riders should know?"
+                  rows={3}
+                />
+              </FormControl>
 
-        <button type="submit" disabled={submitting}>
-          {submitting ? 'Posting...' : 'Post Ride'}
-        </button>
+              <Checkbox
+                name="round_trip"
+                isChecked={form.round_trip}
+                onChange={handleChange}
+                colorScheme="blue"
+              >
+                Round trip
+              </Checkbox>
 
-        {error && <p className="create-ride__error">{error}</p>}
-      </form>
-    </>
+              {error && (
+                <Alert status="error" borderRadius="md">
+                  <AlertIcon />
+                  {error}
+                </Alert>
+              )}
+
+              <Button
+                type="submit"
+                colorScheme="blue"
+                size="lg"
+                w="full"
+                mt={2}
+                isLoading={submitting}
+                loadingText="Posting..."
+              >
+                Post Ride
+              </Button>
+            </VStack>
+          </form>
+        </CardBody>
+      </Card>
+    </Box>
   )
 }
 
