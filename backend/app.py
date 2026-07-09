@@ -99,17 +99,49 @@ def manage_profile():
         except Exception as e:
             return {"status": "error", "message": f"Error updating profile: {e}"}, 500
 
-@app.route('/api/test', methods=['GET'])
-def test_auth():
-    if request.method == 'OPTIONS':
-        return {"status": "preflight ok"}, 200
-
+@app.route('/api/requests/driver', methods=['POST'])
+def get_driver_requests():
     user = get_authenticated_user()
 
-    if user:
-        return {"status": "success", "message": f"Welcome, {user}!"}
-    
-    return {"status": "error", "message": "rejected!"}
+    if not user:
+        return {"status": "error", "message": "Unauthorized."}, 401
+
+    try:
+        trips_res = supabase.table('trips').select('*').eq('driver_id', user.id).execute()
+        driver_trips = trips_res.data
+
+        if not driver_trips:
+            return {"status": "success", "requests": []}, 200
+
+        trip_ids = [trip['id'] for trip in driver_trips]
+        req_response = supabase.table('trip_requests')\
+            .select('id, status, trip_id, requested_at, users(first_name, last_name)')\
+            .in_('trip_id', trip_ids).execute()
+
+        return {"status": "success", "requests": req_response.data}, 200
+    except Exception as e:
+        return {"status": "error", "message": f"Error fetching driver requests: {e}"}, 500
+
+
+@app.route('/api/requests/<int:request_id>', methods=['PUT'])
+def update_request_status(request_id):
+    user = get_authenticated_user()
+
+    if not user:
+        return {"status": "error", "message": "Unauthorized."}, 401
+
+    try:
+        data = request.json
+        new_status = data.get('status')
+
+        if new_status not in ['accepted', 'rejected']:
+            return {"status": "error", "message": "Invalid status."}, 400
+
+        res = supabase.table('trip_requests').update({'status': new_status}).eq('id', request_id).execute()
+        return {"status": "success", "request": res.data[0]}, 200
+
+    except Exception as e:
+        return {"status": "error", "message": f"Error updating request status: {e}"}, 500
 
 
 @app.route('/api/users/exists', methods=['GET'])
