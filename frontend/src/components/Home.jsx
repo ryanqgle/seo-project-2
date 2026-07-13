@@ -1,3 +1,5 @@
+// The landing page shown at "/". This is the first thing visitors see before
+// they log in — a short welcome message and a prompt to sign in.
 function Home() {
   return (
     <main style={{ padding: '48px 24px', textAlign: 'center' }}>

@@ -2,20 +2,32 @@ import { useState, useEffect } from 'react'
 import '../css/login.css'
 import { supabase } from '../dbConnection'
 
+// The login pop-up (modal). It walks the user through two quick steps:
+//   1. Enter an email. We check whether an account already exists for it.
+//   2. Continue with Google — either to sign in (existing account) or sign up
+//      (new account). Google itself handles the password/security.
+// `onClose` is called to close the pop-up.
 function Login({ onClose }) {
   const [email, setEmail] = useState('')
+  // Which screen of the pop-up is showing right now.
   const [step, setStep] = useState('email') // 'email' | 'signin' | 'signup'
+  // True while we're waiting on the "does this email exist?" check.
   const [checking, setChecking] = useState(false)
   const [error, setError] = useState('')
 
+  // Let the user press the Escape key to close the pop-up.
   useEffect(() => {
     const onKeyDown = (e) => {
       if (e.key === 'Escape') onClose()
     }
     window.addEventListener('keydown', onKeyDown)
+    // Remove the key listener when the pop-up closes.
     return () => window.removeEventListener('keydown', onKeyDown)
   }, [onClose])
 
+  // Step 1: after the user types their email and hits Continue, ask the backend
+  // whether that email already has an account. Based on the answer, show either
+  // the "sign in" screen or the "sign up" screen.
   const handleCheckEmail = async (event) => {
     event.preventDefault()
     setError('')
@@ -34,10 +46,11 @@ function Login({ onClose }) {
     }
   }
 
+  // Step 2: send the user to Google to finish signing in. After they approve,
+  // Google sends them back to the app already logged in, and the app
+  // automatically shows the logged-in view.
   const handleGoogle = async () => {
     setError('')
-    // Redirects to Google; on return the Supabase client restores the session
-    // and Root shows the trips feed.
     const { error: oauthError } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: { redirectTo: window.location.origin },
