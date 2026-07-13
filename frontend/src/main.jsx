@@ -108,7 +108,7 @@ function Shell() {
               <CreateRideForm />
             </ProtectedRoute>
           }
-          />
+        />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
       <Footer />

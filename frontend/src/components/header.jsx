@@ -42,7 +42,7 @@ function Header({ onLogin, isLoggedIn, onLogout, isDriver }) {
       )}
 
       {isLoggedIn && (
-        <Link as={RouterLink} to="/edit-profile" onClick={onClose} fontWeight="medium" _hover={{ color: 'blue.500' }}>
+        <Link as={RouterLink} to="/profile" onClick={onClose} fontWeight="medium" _hover={{ color: 'blue.500' }}>
           Profile
         </Link>
       )}
