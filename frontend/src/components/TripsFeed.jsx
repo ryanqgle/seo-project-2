@@ -26,11 +26,17 @@ import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../auth.jsx'
 import { supabase } from '../dbConnection.js'
 
+// Shortens long text and adds "..." on the end, so long addresses don't stretch
+// or clutter the trip cards. For example, a 50-character address becomes the
+// first 30 characters followed by "...".
 function truncate(value, max = 30) {
   if (!value) return value
   return value.length > max ? `${value.slice(0, max)}...` : value
 }
 
+// Turns a stored departure time into a friendly, readable label like
+// "Sat, Jul 13, 2:30 PM". Falls back gracefully if the time is missing or
+// unreadable.
 function formatDeparture(value) {
   if (!value) return 'Time TBD'
   const date = new Date(value)
@@ -44,24 +50,41 @@ function formatDeparture(value) {
   })
 }
 
+// The main trips feed (shown at "/feed"). It lists every open trip as a card
+// showing the driver, destination, time, seats, and price. From here a rider can
+// request a seat, peek at the driver's profile, or see the destination on a map.
+// Drivers also get a "Create Ride" button to post a new trip.
 function TripsFeed() {
+  // The list of open trips loaded from the backend.
   const [trips, setTrips] = useState([])
+  // Where we are in loading the feed: still loading, failed, or ready to show.
   const [status, setStatus] = useState('loading') // 'loading' | 'error' | 'ready'
+  // The driver whose profile pop-up is currently open (null when closed).
   const [selectedDriver, setSelectedDriver] = useState(null)
+  // The destination shown in the map pop-up (null when closed).
   const [mapDestination, setMapDestination] = useState(null)
+  // The signed-in user's role, used to decide whether to show driver-only tools.
   const [role, setRole] = useState(null)
+  // The id of the trip we're currently sending a join request for (shows that
+  // one button as loading). Null when no request is in progress.
   const [requesting, setRequesting] = useState(null)
+  // Controls the driver-profile pop-up (open/close).
   const { isOpen, onOpen, onClose } = useDisclosure()
+  // Controls the map pop-up (open/close), kept separate from the one above.
   const map = useDisclosure()
   const { token } = useAuth()
   const navigate = useNavigate()
+  // Chakra's toast shows the small pop-up notifications (e.g. "Request sent!").
   const toast = useToast()
 
+  // Opens the driver-profile pop-up for the given driver.
   const openDriver = (driver) => {
     setSelectedDriver(driver)
     onOpen()
   }
 
+  // Sends a "request to join this trip" to the driver. Requires being logged in;
+  // shows a success or error notification depending on how it goes.
   const handleRequestJoin = async (tripId) => {
     const { data: { session } } = await supabase.auth.getSession()
     if (!session) {
@@ -104,12 +127,16 @@ function TripsFeed() {
 
 
 
+  // Opens the map pop-up for the given destination.
   const openMap = (destination) => {
     setMapDestination(destination)
     map.onOpen()
   }
 
-  // Load the current user's role so we can show driver-only create button.
+  // Look up the signed-in user's role once we have their login token. We use it
+  // to decide whether to show the driver-only "Create Ride" button.
+  // (The `active` flag lets us ignore the result if the user leaves this page
+  // before it finishes loading.)
   useEffect(() => {
     if (!token) return
     let active = true
@@ -128,6 +155,7 @@ function TripsFeed() {
     }
   }, [token])
 
+  // Load the list of open trips when the feed first opens.
   useEffect(() => {
     let active = true
 
@@ -273,6 +301,7 @@ function TripsFeed() {
         </VStack>
       )}
 
+      {/* Pop-up showing the selected driver's profile (photo, name, role, school). */}
       <Modal isOpen={isOpen} onClose={onClose} isCentered>
         <ModalOverlay />
         <ModalContent borderRadius="xl">
@@ -301,6 +330,7 @@ function TripsFeed() {
         </ModalContent>
       </Modal>
 
+      {/* Pop-up showing the trip's destination on an embedded Google Map. */}
       <Modal isOpen={map.isOpen} onClose={map.onClose} isCentered size="xl">
         <ModalOverlay />
         <ModalContent borderRadius="xl">

@@ -16,34 +16,47 @@ import {
   SimpleGrid
 } from '@chakra-ui/react'
 
+// The driver's dashboard (shown at "/dashboard"). It lists the trips this driver
+// has posted and, under each one, the riders who have asked to join. The driver
+// can accept or decline each pending request.
 function DriverRequests() {
+  // The trips posted by this driver.
   const [trips, setTrips] = useState([])
+  // The join requests for each trip, grouped by trip id
+  // (e.g. { 12: [request, request], 15: [request] }).
   const [requestsByTrip, setRequestsByTrip] = useState({})
+  // True while the dashboard is still loading its data.
   const [loading, setLoading] = useState(true)
 
+  // When the dashboard opens: find this driver's trips, then load the join
+  // requests for each of those trips.
   useEffect(() => {
 
     const loadRequests = async () => {
+      // Get the current login session so we can prove who we are to the backend.
       const response = await supabase.auth.getSession()
       const session = response?.data?.session
-      
+
       if (!session) {
         setLoading(false)
         return
       }
 
       try {
+        // Look up our own user id so we can pick out only our trips.
         const profileRes = await fetch('/api/edit-profile', {
           headers: { 'Authorization': `Bearer ${session.access_token}` }
         })
         const profileData = await profileRes.json()
         const myId = profileData.profile.id
 
+        // Load all open trips, then keep only the ones this driver posted.
         const tripsRes = await fetch('/api/trips')
         const allTrips = await tripsRes.json()
         const myTrips = allTrips.filter((trip) => trip.driver_id === myId)
         setTrips(myTrips)
 
+        // For each of our trips, load its join requests and store them by trip id.
         const requests = {}
         for (const trip of myTrips) {
           const res = await fetch(`/api/trips/${trip.id}/requests`)
@@ -61,6 +74,9 @@ function DriverRequests() {
     loadRequests()
   }, [])
 
+  // Accept or decline a rider's request. `status` is either 'accepted' or
+  // 'declined'. After the backend saves the decision, we update that one request
+  // on screen so the change shows immediately without reloading the page.
   const handleDecision = async (tripId, requestId, status) => {
     const response = await supabase.auth.getSession()
     const session = response?.data?.session

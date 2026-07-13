@@ -17,18 +17,28 @@ import {
 import { useAuth } from '../auth.jsx'
 import { useNavigate } from 'react-router-dom'
 
+// The "edit your profile" page (shown at "/edit-profile"). It loads the user's
+// current details into a form, lets them change their name, role, and profile
+// picture, and saves the changes back to the backend. The school field is filled
+// in automatically from the user's email and can't be edited here.
 export default function UserProfile() {
+    // `token` proves who we are to the backend on every request.
     const { token } = useAuth()
     const navigate = useNavigate()
+    // The form's current values.
     const [profile, setProfile] = useState({
         first_name: '',
         last_name: '',
         role: '',
         profile_picture: ''
     })
+    // True while first loading the profile (shows a spinner).
     const [loading, setLoading] = useState(true)
+    // True while a save is in progress (shows the button's loading state).
     const [saving, setSaving] = useState(false)
 
+    // When the page opens, load the user's existing profile so the form starts
+    // pre-filled with their current details instead of being blank.
     useEffect(() => {
         const fetchProfile = async () => {
             if (!token) return
@@ -52,8 +62,10 @@ export default function UserProfile() {
         fetchProfile()
     }, [token])
 
+    // Saves the form. Sends the updated details to the backend, and on success
+    // shows a confirmation and returns the user to their profile page.
     const handleSave = async (e) => {
-        e.preventDefault()
+        e.preventDefault()  // stop the browser from reloading the page on submit
         setSaving(true)
 
         try {
@@ -79,6 +91,8 @@ export default function UserProfile() {
         }
     }
 
+    // Keeps the form in sync as the user types. Each input's `name` matches a
+    // field in `profile`, so this updates just the field that changed.
     const handleChange = (e) => {
     setProfile({ ...profile, [e.target.name]: e.target.value });
     };

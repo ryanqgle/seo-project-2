@@ -36,32 +36,44 @@ const initialForm = {
   round_trip: false,
 }
 
+// The "Post a Ride" form, used by drivers to offer a new trip (shown at
+// "/create-ride"). It collects the trip details, checks that the destination is
+// a real address, and then saves the trip to the backend.
 function CreateRideForm() {
+  // `token` proves who we are so the backend knows which driver is posting.
   const { token } = useAuth()
   const navigate = useNavigate()
+  // All the form's current values (title, destination, seats, etc.).
   const [form, setForm] = useState(initialForm)
+  // True while the trip is being posted (shows the button's loading state).
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState('')
 
+  // Keeps the form in sync as the user types or ticks the checkbox. Each input's
+  // `name` matches a field in `form`, so this updates just the one that changed.
   const handleChange = (e) => {
     const value = e.target.type === 'checkbox' ? e.target.checked : e.target.value
     setForm({ ...form, [e.target.name]: value })
   }
 
-  // Verify the destination points to a real place using OpenStreetMap's free
-  // Nominatim geocoder. Returns the address string
-  // on success, or null if nothing matched.
+  // Checks that the typed destination is a real place, so drivers can't post a
+  // made-up address. It looks the address up using OpenStreetMap's free, public
+  // map-search service. If a match is found, it returns the cleaned-up full
+  // address; if nothing matches, it returns null.
   const verifyDestination = async (address) => {
     const res = await fetch(
       `https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${encodeURIComponent(address)}`
     )
-    if (!res.ok) throw new Error(`Geocoding failed: ${res.status}`)
+    if (!res.ok) throw new Error(`Address lookup failed: ${res.status}`)
     const results = await res.json()
     return results.length > 0 ? results[0].display_name : null
   }
 
+  // Runs when the driver clicks "Post Ride". It first confirms the destination
+  // is a real address, then sends the trip to the backend. On success it takes
+  // the driver to the trips feed so they can see their new post.
   const handleSubmit = async (e) => {
-    e.preventDefault()
+    e.preventDefault()  // stop the browser from reloading the page on submit
     setError('')
     setSubmitting(true)
 
