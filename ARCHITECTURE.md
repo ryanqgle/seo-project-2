@@ -2,7 +2,7 @@
 
 For the project's overall architecture, see the image below:
 
-<img src="public/ARCHITECTURE" alt="image of project architecture" width="500" height="333">
+<img src="public/ARCHITECTURE.png" alt="image of project architecture" width="500" height="333">
 
 ## Overview
 
