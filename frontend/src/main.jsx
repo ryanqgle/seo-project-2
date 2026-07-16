@@ -13,7 +13,7 @@ import UserProfile from './components/UserProfile.jsx'
 import DriverRequests from './components/DriverRequests.jsx'
 import { supabase } from './dbConnection'
 import ProfileView from './components/ProfileView.jsx'
-import CreateRideForm from './components/createRideForm.jsx'
+import CreateRideForm from './components/CreateRideForm.jsx'
 
 // Wraps routes that require a logged-in user. While the session is still
 // loading we render nothing so we don't redirect prematurely; once loaded, an
