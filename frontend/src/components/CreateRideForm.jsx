@@ -22,6 +22,7 @@ import {
   AlertIcon
 } from '@chakra-ui/react'
 import { useAuth } from '../auth.jsx'
+import { apiUrl } from '../api'
 
 const CATEGORY_CHOICES = ['campus', 'grocery', 'airport', 'other']
 
@@ -93,7 +94,7 @@ function CreateRideForm() {
         return
       }
 
-      const res = await fetch('/api/trips', {
+      const res = await fetch(apiUrl('/api/trips'), {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,

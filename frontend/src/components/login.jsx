@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import '../css/login.css'
 import { supabase } from '../dbConnection'
+import { apiUrl } from '../api'
 
 // The login pop-up (modal). It walks the user through two quick steps:
 //   1. Enter an email. We check whether an account already exists for it.
@@ -34,7 +35,7 @@ function Login({ onClose }) {
     setChecking(true)
     try {
       const res = await fetch(
-        `/api/users/exists?email=${encodeURIComponent(email)}`,
+        apiUrl(`/api/users/exists?email=${encodeURIComponent(email)}`),
       )
       if (!res.ok) throw new Error(`Request failed: ${res.status}`)
       const data = await res.json()

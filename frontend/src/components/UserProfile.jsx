@@ -16,6 +16,7 @@ import {
 } from '@chakra-ui/react'
 import { useAuth } from '../auth.jsx'
 import { useNavigate } from 'react-router-dom'
+import { apiUrl } from '../api'
 
 // The "edit your profile" page (shown at "/edit-profile"). It loads the user's
 // current details into a form, lets them change their name, role, and profile
@@ -44,7 +45,7 @@ export default function UserProfile() {
             if (!token) return
 
             try {
-                const res = await fetch('/api/edit-profile', {
+                const res = await fetch(apiUrl('/api/edit-profile'), {
                   headers: { 'Authorization': `Bearer ${token}` }
                 })
                 const data = await res.json()
@@ -69,7 +70,7 @@ export default function UserProfile() {
         setSaving(true)
 
         try {
-            const res = await fetch('/api/edit-profile', {
+            const res = await fetch(apiUrl('/api/edit-profile'), {
              method: 'PUT',
              headers: {
                 'Authorization': `Bearer ${token}`,

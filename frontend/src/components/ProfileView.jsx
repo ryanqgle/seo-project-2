@@ -14,6 +14,7 @@ import {
     VStack
 } from '@chakra-ui/react'
 import { useAuth } from '../auth.jsx'
+import { apiUrl } from '../api'
 
 // The read-only "view your profile" page (shown at "/profile"). It displays the
 // signed-in user's photo, name, email, role, and school, plus an "Edit Profile"
@@ -41,7 +42,7 @@ export default function ProfileView() {
             if (!token) return
 
             try {
-                const res = await fetch('/api/edit-profile', {
+                const res = await fetch(apiUrl('/api/edit-profile'), {
                     headers: { 'Authorization': `Bearer ${token}` }
                 })
                 const data = await res.json()

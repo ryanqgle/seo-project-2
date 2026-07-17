@@ -25,6 +25,7 @@ import {
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../auth.jsx'
 import { supabase } from '../dbConnection.js'
+import { apiUrl } from '../api'
 
 // Shortens long text and adds "..." on the end, so long addresses don't stretch
 // or clutter the trip cards. For example, a 50-character address becomes the
@@ -94,7 +95,7 @@ function TripsFeed() {
     }
 
     try {
-      const res = await fetch(`/api/trips/${tripId}/requests`, {
+      const res = await fetch(apiUrl(`/api/trips/${tripId}/requests`), {
         method: 'POST',
         headers: { 'Authorization': `Bearer ${session.access_token}` }
       })
@@ -141,7 +142,7 @@ function TripsFeed() {
     if (!token) return
     let active = true
 
-    fetch('/api/edit-profile', {
+    fetch(apiUrl('/api/edit-profile'), {
       headers: { 'Authorization': `Bearer ${token}` },
     })
       .then((res) => (res.ok ? res.json() : null))
@@ -159,7 +160,7 @@ function TripsFeed() {
   useEffect(() => {
     let active = true
 
-    fetch('/api/trips')
+    fetch(apiUrl('/api/trips'))
       .then((res) => {
         if (!res.ok) throw new Error(`Request failed: ${res.status}`)
         return res.json()

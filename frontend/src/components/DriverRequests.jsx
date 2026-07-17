@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../dbConnection'
+import { apiUrl } from '../api'
 import {
   Box,
   Button,
@@ -44,14 +45,14 @@ function DriverRequests() {
 
       try {
         // Look up our own user id so we can pick out only our trips.
-        const profileRes = await fetch('/api/edit-profile', {
+        const profileRes = await fetch(apiUrl('/api/edit-profile'), {
           headers: { 'Authorization': `Bearer ${session.access_token}` }
         })
         const profileData = await profileRes.json()
         const myId = profileData.profile.id
 
         // Load all open trips, then keep only the ones this driver posted.
-        const tripsRes = await fetch('/api/trips')
+        const tripsRes = await fetch(apiUrl('/api/trips'))
         const allTrips = await tripsRes.json()
         const myTrips = allTrips.filter((trip) => trip.driver_id === myId)
         setTrips(myTrips)
@@ -59,7 +60,7 @@ function DriverRequests() {
         // For each of our trips, load its join requests and store them by trip id.
         const requests = {}
         for (const trip of myTrips) {
-          const res = await fetch(`/api/trips/${trip.id}/requests`)
+          const res = await fetch(apiUrl(`/api/trips/${trip.id}/requests`))
           requests[trip.id] = await res.json()
           console.log(`Raw data for trip ${trip.id}:`, requests[trip.id])
         }
@@ -84,7 +85,7 @@ function DriverRequests() {
     if (!session) return
 
     try {
-      const res = await fetch(`/api/trips/${tripId}/requests/${requestId}`, {
+      const res = await fetch(apiUrl(`/api/trips/${tripId}/requests/${requestId}`), {
         method: 'PATCH',
         headers: {
           'Authorization': `Bearer ${session.access_token}`,
