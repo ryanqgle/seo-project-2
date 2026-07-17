@@ -4,6 +4,7 @@ import {
     EmbeddedCheckoutProvider,
     EmbeddedCheckout
 } from '@stripe/react-stripe-js';
+import {useParams} from 'react-router-dom';
 
 // Make sure to call `loadStrip` outside of a component's render to avoid
 // recreating the `Stripe` object on every render
@@ -14,14 +15,22 @@ import {
 const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY);
 
 const Payment = () => {
+    const {tripRequestId} = useParams();
+
     const fetchClientSecret = React.useCallback(() => {
-        // Create a Checkout Session
+
         return fetch('/api/create-checkout-session', { // Place holder need to make create-checkout-session into proper backend route
             method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                trip_request_id: tripRequestId,
+            }),
         })
             .then((res) => res.json())
             .then((data) => data.clientSecret);
-    }, []);
+    }, [tripRequestId]);
 
     const options = {fetchClientSecret};
 
