@@ -281,8 +281,8 @@ def get_rider_activity():
 
     try:
         result = supabase.table('trip_requests')\
-            .select('id, status, trips(*, users!driver_id(first_name, profile_picture))')\
-            .eq('user_id', user.id)\
+            .select('id, status, passenger_id, trips(*, users!trips_driver_id_fkey(first_name, profile_picture))')\
+            .eq('passenger_id', user.id)\
             .execute()
 
         return jsonify(result.data), 200

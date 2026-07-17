@@ -5,7 +5,12 @@
 // the Flask backend on 127.0.0.1:5000 (see vite.config.js).
 //
 // Usage: fetch(apiUrl('/api/trips'))
-const BASE_URL = (import.meta.env.VITE_API_URL ?? '').replace(/\/$/, '')
+const LOCAL_URL = 'http://127.0.0.1:5000'
+let BASE_URL = import.meta.env.DEV
+    ? LOCAL_URL
+    : (import.meta.env.VITE_API_URL)
+
+BASE_URL = BASE_URL.replace(/\/$/, '')
 
 export function apiUrl(path) {
   return `${BASE_URL}${path}`
