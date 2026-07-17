@@ -105,3 +105,24 @@ def get_trip_messages(trip_id):
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
+@trips_bp.route('/api/trips/<int:trip_id>/messages', methods=['POST'])
+def send_trip_message(trip_id):
+    """Saves new message to db"""
+
+    user = get_authenticated_user
+    text = request.json.get('text')
+
+    if not user or not text:
+        return jsonify({'error': 'Invalid request'}), 400
+
+    try:
+        result = supabase.table('trip_messages').insert({
+            'trip_id': trip_id,
+            'user_id': user.id,
+            "text": text
+        }).execute()
+
+        return jsonify(result.data[0]), 201
+
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
