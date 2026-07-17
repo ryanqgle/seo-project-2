@@ -1,12 +1,19 @@
 import { useState, useEffect } from 'react'
-import { supabase } from '..dbConnection'
+import { supabase } from '../dbConnection'
+import { useAuth } from '../auth'
+import { apiUrl } from '../api'
 
 function TripChat({tripId, currUserId}){
+    const { token } = useAuth()
     const [messages, setMessages] = useState([])
     const [newMessage, setNewMessage] = useState("")
 
     useEffect(() => {
-        fetch(`/api/trips/${tripId}/messages`)
+        if (!token) return
+
+        fetch(apiUrl(`/api/trips/${tripId}/messages`), {
+            headers: {'Authorization': `Bearer ${token}`}
+        })
             .then(res => res.json())
             .then(data => setMessages(data))
 
@@ -28,17 +35,21 @@ function TripChat({tripId, currUserId}){
         return () => {
             supabase.removeChannel(chatChannel)
         }
-    }, [tripId])
+    }, [tripId, token])
 
     const handleSendMessage = async (e) => {
         e.preventDefault()
 
-        await fetch(`/api/trips/${tripId}/messages`, {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({text: newMessage})
+        const response = await fetch(apiUrl(`/api/trips/${tripId}/messages`), {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({text: newMessage})
         })
-        setNewMessage('')
+
+    setNewMessage('')
     }
 
     return(

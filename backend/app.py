@@ -235,9 +235,9 @@ def create_trip_api():
 def get_trip_messages(trip_id):
     """Fetches chat history when a user opens the DM"""
 
-    user = get_authenticated_user
+    user = get_authenticated_user()
     if not user:
-        return jsonify({'error': 'Unauthorized'}), 401
+       return jsonify({'error': 'Unauthorized'}), 401
 
     try:
         result = supabase.table('trip_messages')\
@@ -254,7 +254,7 @@ def get_trip_messages(trip_id):
 def send_trip_message(trip_id):
     """Saves new message to db"""
 
-    user = get_authenticated_user
+    user = get_authenticated_user()
     text = request.json.get('text')
 
     if not user or not text:
@@ -270,6 +270,7 @@ def send_trip_message(trip_id):
         return jsonify(result.data[0]), 201
 
     except Exception as e:
+        print("SUPABASE INSERT ERROR:", str(e))
         return jsonify({'error': str(e)}), 500
 
 # Import blueprints after `supabase` is defined so trips.py can import it
