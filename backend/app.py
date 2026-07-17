@@ -4,7 +4,20 @@ from flask_cors import CORS
 from db import supabase
 
 app = Flask(__name__)
-CORS(app, resources={r"/*": {"origins": ["http://localhost:5173", "http://127.0.0.1:5173"]}}, allow_headers=["Content-Type", "Authorization"], methods=["GET", "POST", "OPTIONS", "PUT", "DELETE"])
+
+# Origins allowed to call this API from the browser. Local Vite dev servers plus
+# the deployed Vercel frontend. Additional origins can be supplied at runtime via
+# the FRONTEND_ORIGINS env var (comma-separated) without a code change.
+ALLOWED_ORIGINS = [
+    "http://localhost:5173",
+    "http://127.0.0.1:5173",
+    "https://hop-in-beta.vercel.app",
+]
+ALLOWED_ORIGINS += [
+    o.strip() for o in os.environ.get("FRONTEND_ORIGINS", "").split(",") if o.strip()
+]
+
+CORS(app, resources={r"/*": {"origins": ALLOWED_ORIGINS}}, allow_headers=["Content-Type", "Authorization"], methods=["GET", "POST", "OPTIONS", "PUT", "DELETE"])
 
 
 def get_authenticated_user():

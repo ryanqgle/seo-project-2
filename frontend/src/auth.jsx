@@ -1,5 +1,6 @@
 import { createContext, useContext, useEffect, useState } from 'react'
 import { supabase } from './dbConnection'
+import { apiUrl } from './api'
 
 const AuthContext = createContext(null)
 
@@ -36,7 +37,7 @@ export function AuthProvider({ children }) {
   // Make sure the signed-in user exists in our `users` table.
   useEffect(() => {
     if (!session) return
-    fetch('/api/auth', {
+    fetch(apiUrl('/api/auth'), {
       method: 'POST',
       headers: { Authorization: `Bearer ${session.access_token}` },
     }).catch(() => {})

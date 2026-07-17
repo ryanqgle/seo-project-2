@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import { supabase } from '../dbConnection'
 import UserProfile from './UserProfile'
 import Home from './Home'
+import { apiUrl } from '../api'
 import '../css/App.css'
 
 // NOTE: This is an early version of the app and is no longer wired up. The app
@@ -31,7 +32,7 @@ function App() {
 
           // Tell our backend to create/record this user in the database.
           try {
-            const res = fetch('/api/auth', {
+            const res = fetch(apiUrl('/api/auth'), {
               method: 'POST',
               headers: {
                 'Authorization': `Bearer ${session.access_token}`
