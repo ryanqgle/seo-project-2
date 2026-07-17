@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../dbConnection'
 import { apiUrl } from '../api'
+import RouteModalButton from './RouteModalButton.jsx'
 import {
   Box,
   Button,
@@ -151,6 +152,17 @@ function DriverRequests() {
                     Chat
                 </Button>
                 </Flex>
+                <RouteModalButton
+                  tripId={trip.id}
+                  mt={3}
+                  size="sm"
+                  colorScheme="blue"
+                  variant="outline"
+                  borderRadius="full"
+                >
+                  View Route
+                </RouteModalButton>
+
               </Box>
 
               <Divider mb={4} />

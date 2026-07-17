@@ -26,6 +26,8 @@ import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../auth.jsx'
 import { supabase } from '../dbConnection.js'
 import { apiUrl } from '../api'
+import LocationPicker from './LocationPicker.jsx'
+import RouteModalButton from './RouteModalButton.jsx'
 
 // Shortens long text and adds "..." on the end, so long addresses don't stretch
 // or clutter the trip cards. For example, a 50-character address becomes the
@@ -58,21 +60,39 @@ function formatDeparture(value) {
 function TripsFeed() {
   // The list of open trips loaded from the backend.
   const [trips, setTrips] = useState([])
+
   // Where we are in loading the feed: still loading, failed, or ready to show.
   const [status, setStatus] = useState('loading') // 'loading' | 'error' | 'ready'
+
   // The driver whose profile pop-up is currently open (null when closed).
   const [selectedDriver, setSelectedDriver] = useState(null)
+
   // The destination shown in the map pop-up (null when closed).
   const [mapDestination, setMapDestination] = useState(null)
+
   // The signed-in user's role, used to decide whether to show driver-only tools.
   const [role, setRole] = useState(null)
+  // Trip ids the signed-in rider has been accepted onto, so those cards can
+  // offer "View Route" instead of "Request to Join".
+  const [acceptedTripIds, setAcceptedTripIds] = useState(() => new Set())
+
   // The id of the trip we're currently sending a join request for (shows that
   // one button as loading). Null when no request is in progress.
   const [requesting, setRequesting] = useState(null)
+
+  // The trip a rider is requesting a seat on (drives the pickup modal), plus the
+  // pickup location they've chosen on the map ({ lat, lng, address }).
+  const [pickupTrip, setPickupTrip] = useState(null)
+  const [pickupLocation, setPickupLocation] = useState(null)
+
   // Controls the driver-profile pop-up (open/close).
   const { isOpen, onOpen, onClose } = useDisclosure()
+
   // Controls the map pop-up (open/close), kept separate from the one above.
   const map = useDisclosure()
+  
+  // Controls the "set your pickup location" pop-up.
+  const pickup = useDisclosure()
   const { token } = useAuth()
   const navigate = useNavigate()
   // Chakra's toast shows the small pop-up notifications (e.g. "Request sent!").
@@ -84,26 +104,59 @@ function TripsFeed() {
     onOpen()
   }
 
-  // Sends a "request to join this trip" to the driver. Requires being logged in;
-  // shows a success or error notification depending on how it goes.
-  const handleRequestJoin = async (tripId) => {
+  // Opens the "set your pickup location" pop-up for a trip. Requires being
+  // logged in; the rider picks where they want to be picked up before we send
+  // the request.
+  const openPickup = async (trip) => {
     const { data: { session } } = await supabase.auth.getSession()
     if (!session) {
       toast({ title: 'Please log in to request a seat.', status: 'warning', duration: 3000 })
-      setRequesting(null)
+      return
+    }
+    setPickupTrip(trip)
+    setPickupLocation(null)
+    pickup.onOpen()
+  }
+
+  // Sends the join request once the rider has chosen a pickup location. Includes
+  // the pickup coordinates + address so the driver can route to them. Shows a
+  // success or error notification depending on how it goes.
+  const submitRequest = async () => {
+    if (!pickupLocation?.lat) {
+      toast({ title: 'Please set your pickup location on the map.', status: 'warning', duration: 3000 })
       return
     }
 
+    const { data: { session } } = await supabase.auth.getSession()
+    if (!session) {
+      toast({ title: 'Please log in to request a seat.', status: 'warning', duration: 3000 })
+      return
+    }
+
+    setRequesting(pickupTrip.id)
     try {
-      const res = await fetch(apiUrl(`/api/trips/${tripId}/requests`), {
+      // Fall back to coordinates if the address label is still resolving.
+      const label =
+        pickupLocation.address ||
+        `${pickupLocation.lat.toFixed(5)}, ${pickupLocation.lng.toFixed(5)}`
+
+      const res = await fetch(apiUrl(`/api/trips/${pickupTrip.id}/requests`), {
         method: 'POST',
-        headers: { 'Authorization': `Bearer ${session.access_token}` }
+        headers: {
+          'Authorization': `Bearer ${session.access_token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          pickup_address: label,
+          pickup_lat: pickupLocation.lat,
+          pickup_lng: pickupLocation.lng,
+        }),
       })
 
       const data = await res.json()
 
       if (!res.ok) {
-        throw new Error(data.message || 'Failed to send request.')
+        throw new Error(data.message || data.error || 'Failed to send request.')
       }
 
       toast({
@@ -113,6 +166,7 @@ function TripsFeed() {
         duration: 3000,
         isClosable: true,
       })
+      pickup.onClose()
     } catch (err) {
       toast({
         title: 'Could not send request.',
@@ -148,6 +202,28 @@ function TripsFeed() {
       .then((res) => (res.ok ? res.json() : null))
       .then((data) => {
         if (active && data?.status === 'success') setRole(data.profile?.role ?? null)
+      })
+      .catch(() => {})
+
+    return () => {
+      active = false
+    }
+  }, [token])
+
+  // Load which trips the rider has been accepted onto, so we can show "View
+  // Route" on those cards.
+  useEffect(() => {
+    if (!token) return
+    let active = true
+
+    fetch(apiUrl('/api/my-requests'), {
+      headers: { 'Authorization': `Bearer ${token}` },
+    })
+      .then((res) => (res.ok ? res.json() : []))
+      .then((data) => {
+        if (!active || !Array.isArray(data)) return
+        const accepted = data.filter((r) => r.status === 'accepted').map((r) => r.trip_id)
+        setAcceptedTripIds(new Set(accepted))
       })
       .catch(() => {})
 
@@ -282,18 +358,28 @@ function TripsFeed() {
                   </Text>
                 )}
 
-                <Button
-                colorScheme="blue"
-                width="x"
-                variant="solid"
-                borderRadius="full"
-                size="sm"
-                onClick={() => handleRequestJoin(trip.id)}
-                isLoading={requesting === trip.id}
-                loadingText="Requesting..."
-                >
-                  Request to Join
-                </Button>
+                {acceptedTripIds.has(trip.id) ? (
+                  <RouteModalButton
+                    tripId={trip.id}
+                    colorScheme="blue"
+                    variant="solid"
+                    borderRadius="full"
+                    size="sm"
+                  >
+                    View Route
+                  </RouteModalButton>
+                ) : (
+                  <Button
+                  colorScheme="blue"
+                  width="x"
+                  variant="solid"
+                  borderRadius="full"
+                  size="sm"
+                  onClick={() => openPickup(trip)}
+                  >
+                    Request to Join
+                  </Button>
+                )}
 
               </CardBody>
             </Card>
@@ -352,6 +438,34 @@ function TripsFeed() {
                 />
               </Box>
             )}
+          </ModalBody>
+        </ModalContent>
+      </Modal>
+
+      {/* Pop-up where the rider drops a pin for where they want to be picked up. */}
+      <Modal isOpen={pickup.isOpen} onClose={pickup.onClose} isCentered size="xl">
+        <ModalOverlay />
+        <ModalContent borderRadius="xl">
+          <ModalHeader>Set your pickup location</ModalHeader>
+          <ModalCloseButton />
+          <ModalBody pb={6}>
+            <Text mb={3} color="gray.600">
+              Where should {pickupTrip?.users?.first_name || 'the driver'} pick you up
+              {pickupTrip?.title ? ` for “${pickupTrip.title}”` : ''}?
+            </Text>
+            <LocationPicker onChange={setPickupLocation} height={320} />
+            <Button
+              mt={4}
+              w="full"
+              colorScheme="blue"
+              borderRadius="full"
+              onClick={submitRequest}
+              isLoading={requesting === pickupTrip?.id}
+              loadingText="Requesting..."
+              isDisabled={!pickupLocation?.lat}
+            >
+              Confirm pickup & request seat
+            </Button>
           </ModalBody>
         </ModalContent>
       </Modal>

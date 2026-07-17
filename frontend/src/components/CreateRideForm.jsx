@@ -23,12 +23,12 @@ import {
 } from '@chakra-ui/react'
 import { useAuth } from '../auth.jsx'
 import { apiUrl } from '../api'
+import LocationPicker from './LocationPicker.jsx'
 
 const CATEGORY_CHOICES = ['campus', 'grocery', 'airport', 'other']
 
 const initialForm = {
   title: '',
-  destination: '',
   departure_time: '',
   category: CATEGORY_CHOICES[0],
   available_seats: 1,
@@ -44,8 +44,14 @@ function CreateRideForm() {
   // `token` proves who we are so the backend knows which driver is posting.
   const { token } = useAuth()
   const navigate = useNavigate()
-  // All the form's current values (title, destination, seats, etc.).
+  // All the form's current values (title, seats, etc.). Location fields live in
+  // their own state below since they come from the maps, not text inputs.
   const [form, setForm] = useState(initialForm)
+  
+  // Where the trip starts and ends, each { lat, lng, address } from a map pin.
+  // Null until the driver drops the respective pin.
+  const [origin, setOrigin] = useState(null)
+  const [destination, setDestination] = useState(null)
   // True while the trip is being posted (shows the button's loading state).
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState('')
@@ -57,42 +63,27 @@ function CreateRideForm() {
     setForm({ ...form, [e.target.name]: value })
   }
 
-  // Checks that the typed destination is a real place, so drivers can't post a
-  // made-up address. It looks the address up using OpenStreetMap's free, public
-  // map-search service. If a match is found, it returns the cleaned-up full
-  // address; if nothing matches, it returns null.
-  const verifyDestination = async (address) => {
-    const res = await fetch(
-      `https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${encodeURIComponent(address)}`
-    )
-    if (!res.ok) throw new Error(`Address lookup failed: ${res.status}`)
-    const results = await res.json()
-    return results.length > 0 ? results[0].display_name : null
-  }
-
-  // Runs when the driver clicks "Post Ride". It first confirms the destination
-  // is a real address, then sends the trip to the backend. On success it takes
-  // the driver to the trips feed so they can see their new post.
+  // Runs when the driver clicks "Post Ride". The start and destination now come
+  // from map pins (coordinates are the source of truth, with a reverse-geocoded
+  // address label), so we just confirm both pins are set and send everything to
+  // the backend. On success it takes the driver to the trips feed.
   const handleSubmit = async (e) => {
     e.preventDefault()  // stop the browser from reloading the page on submit
     setError('')
+
+    if (!origin?.lat || !destination?.lat) {
+      setError('Please set both a starting point and a destination on the maps.')
+      return
+    }
+
     setSubmitting(true)
 
     try {
-      let verifiedDestination
-      try {
-        verifiedDestination = await verifyDestination(form.destination)
-      } catch {
-        setError('Could not verify the address. Please try again.')
-        setSubmitting(false)
-        return
-      }
-
-      if (!verifiedDestination) {
-        setError('Please enter a valid address for the destination.')
-        setSubmitting(false)
-        return
-      }
+      // If the address label is still resolving, fall back to the coordinates so
+      // we always store something readable alongside the exact point.
+      const originLabel = origin.address || `${origin.lat.toFixed(5)}, ${origin.lng.toFixed(5)}`
+      const destinationLabel =
+        destination.address || `${destination.lat.toFixed(5)}, ${destination.lng.toFixed(5)}`
 
       const res = await fetch(apiUrl('/api/trips'), {
         method: 'POST',
@@ -101,10 +92,19 @@ function CreateRideForm() {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          ...form,
-          destination: verifiedDestination,
+          title: form.title,
+          departure_time: form.departure_time,
+          category: form.category,
+          description: form.description,
+          round_trip: form.round_trip,
           available_seats: Number(form.available_seats),
           cost: Number(form.cost),
+          origin: originLabel,
+          origin_lat: origin.lat,
+          origin_lng: origin.lng,
+          destination: destinationLabel,
+          destination_lat: destination.lat,
+          destination_lng: destination.lng,
         })
       })
       const data = await res.json()
@@ -143,13 +143,13 @@ function CreateRideForm() {
               </FormControl>
 
               <FormControl isRequired>
+                <FormLabel fontSize="sm" fontWeight="bold">Starting point</FormLabel>
+                <LocationPicker initialValue={origin} onChange={setOrigin} />
+              </FormControl>
+
+              <FormControl isRequired>
                 <FormLabel fontSize="sm" fontWeight="bold">Destination</FormLabel>
-                <Input
-                  name="destination"
-                  value={form.destination}
-                  onChange={handleChange}
-                  placeholder="Target, Downtown"
-                />
+                <LocationPicker initialValue={destination} onChange={setDestination} />
               </FormControl>
 
               <FormControl isRequired>

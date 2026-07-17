@@ -2,6 +2,7 @@ from datetime import datetime
 from flask import Blueprint, render_template, request, redirect, url_for, session, flash, jsonify
 
 from db import supabase
+from routing import optimize_pickup_order, route_geometry, RoutingError
 
 trips_bp = Blueprint('trips', __name__)
 
@@ -17,6 +18,85 @@ def get_trips():
             .order('departure_time', desc=False) \
             .execute()
         return jsonify(result.data)
+    except Exception as error:
+        return jsonify({'error': str(error)}), 500
+
+
+@trips_bp.route('/api/trips/<int:trip_id>/route', methods=['GET'])
+def get_trip_route(trip_id):
+    """Build the single multi-stop route for a trip, on demand.
+
+    Combines the driver's origin, every accepted rider's pickup (ordered
+    optimally by ORS), and the destination into one drivable route. Only the
+    driver or an accepted passenger of the trip may view it.
+    """
+    from app import get_authenticated_user
+
+    user = get_authenticated_user()
+    if not user:
+        return jsonify({'error': 'Unauthorized'}), 401
+
+    try:
+        trip_res = supabase.table('trips').select('*').eq('id', trip_id).execute()
+        if not trip_res.data:
+            return jsonify({'error': 'Trip not found'}), 404
+        trip = trip_res.data[0]
+
+        # Only the driver or an accepted passenger can see the route.
+        accepted = supabase.table('trip_requests').select('*') \
+            .eq('trip_id', trip_id).eq('status', 'accepted').execute().data or []
+        is_driver = trip['driver_id'] == user.id
+        is_passenger = any(r['passenger_id'] == user.id for r in accepted)
+        if not is_driver and not is_passenger:
+            return jsonify({'error': 'Unauthorized'}), 403
+
+        if trip.get('origin_lat') is None or trip.get('destination_lat') is None:
+            return jsonify({'error': 'This trip has no origin/destination coordinates.'}), 400
+
+        start = (trip['origin_lat'], trip['origin_lng'])
+        end = (trip['destination_lat'], trip['destination_lng'])
+
+        # Accepted pickups that actually have coordinates.
+        pickups = [
+            {
+                'id': r['id'],
+                'lat': r['pickup_lat'],
+                'lng': r['pickup_lng'],
+                'address': r.get('pickup_address'),
+                'passenger_id': r['passenger_id'],
+            }
+            for r in accepted
+            if r.get('pickup_lat') is not None and r.get('pickup_lng') is not None
+        ]
+
+        # Order the pickups optimally (skip the ORS solve if there are none).
+        order = optimize_pickup_order(start, end, pickups)
+        by_id = {p['id']: p for p in pickups}
+        ordered_pickups = [by_id[i] for i in order] if order else pickups
+
+        coords = [start] + [(p['lat'], p['lng']) for p in ordered_pickups] + [end]
+        route = route_geometry(coords)
+
+        stops = [{'type': 'origin', 'lat': start[0], 'lng': start[1], 'address': trip.get('origin')}]
+        for idx, p in enumerate(ordered_pickups, start=1):
+            stops.append({
+                'type': 'pickup',
+                'order': idx,
+                'lat': p['lat'],
+                'lng': p['lng'],
+                'address': p['address'],
+                'passenger_id': p['passenger_id'],
+            })
+        stops.append({'type': 'destination', 'lat': end[0], 'lng': end[1], 'address': trip.get('destination')})
+
+        return jsonify({
+            'stops': stops,
+            'geometry': route['geometry'],
+            'distance_meters': route['distance_meters'],
+            'duration_seconds': route['duration_seconds'],
+        })
+    except RoutingError as error:
+        return jsonify({'error': str(error)}), 502
     except Exception as error:
         return jsonify({'error': str(error)}), 500
 
