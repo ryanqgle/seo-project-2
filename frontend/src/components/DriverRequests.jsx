@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../dbConnection'
 import { apiUrl } from '../api'
+import RouteModalButton from './RouteModalButton.jsx'
 import {
   Box,
   Button,
@@ -125,6 +126,16 @@ function DriverRequests() {
               <Box mb={4}>
                 <Heading size="md" color="gray.800">{trip.title}</Heading>
                 <Text color="blue.600" fontWeight="bold">→ To {trip.destination}</Text>
+                <RouteModalButton
+                  tripId={trip.id}
+                  mt={3}
+                  size="sm"
+                  colorScheme="blue"
+                  variant="outline"
+                  borderRadius="full"
+                >
+                  View Route
+                </RouteModalButton>
               </Box>
 
               <Divider mb={4} />

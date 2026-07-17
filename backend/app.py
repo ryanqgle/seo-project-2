@@ -203,19 +203,36 @@ def create_trip_api():
         data = request.json or {}
 
         title = (data.get('title') or '').strip()
+        origin = (data.get('origin') or '').strip()
         destination = (data.get('destination') or '').strip()
         departure_time = data.get('departure_time')
 
-        if not title or not destination or not departure_time:
+        origin_lat = data.get('origin_lat')
+        origin_lng = data.get('origin_lng')
+        destination_lat = data.get('destination_lat')
+        destination_lng = data.get('destination_lng')
+
+        if not title or not origin or not destination or not departure_time:
             return {
                 "status": "error",
-                "message": "Title, destination, and departure time are required.",
+                "message": "Title, starting point, destination, and departure time are required.",
+            }, 400
+
+        if None in (origin_lat, origin_lng, destination_lat, destination_lng):
+            return {
+                "status": "error",
+                "message": "Map coordinates for the starting point and destination are required.",
             }, 400
 
         new_trip = {
             'driver_id': user.id,
             'title': title,
+            'origin': origin,
+            'origin_lat': float(origin_lat),
+            'origin_lng': float(origin_lng),
             'destination': destination,
+            'destination_lat': float(destination_lat),
+            'destination_lng': float(destination_lng),
             'departure_time': departure_time,
             'category': data.get('category'),
             'available_seats': int(data.get('available_seats') or 1),
