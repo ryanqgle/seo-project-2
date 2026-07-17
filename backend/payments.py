@@ -8,6 +8,7 @@ payments_bp = Blueprint('payments', __name__)
 load_dotenv()
 stripe_secret_key = os.getenv('STRIPE_SECRET_KEY')
 client = stripe.StripeClient(stripe_secret_key)
+webhook_secret = os.getenv('STRIPE_WEBHOOK_SECRET_KEY')
 
 DOMAIN = 'http://localhost:5173'
 
@@ -147,4 +148,11 @@ def session_status():
     
     return jsonify(status=session_status, customer_email=customer_email)
 
-
+@payments_bp.route('/stripe-webhook', methods=['POST'])
+def stripe_webhook():
+    payload = request.data
+    
+    print("Webhook receieved")
+    print(payload)
+    
+    return jsonify({'received': True}), 200
