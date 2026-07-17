@@ -123,8 +123,15 @@ function DriverRequests() {
           <Card key={trip.id} variant="outline" boxShadow="sm" borderRadius="xl">
             <CardBody>
               <Box mb={4}>
-                <Heading size="md" color="gray.800">{trip.title}</Heading>
-                <Text color="blue.600" fontWeight="bold">→ To {trip.destination}</Text>
+                <Flex justify="space-between" align="flex-start">
+                  <Box>
+                    <Heading size="md" color="gray.800">{trip.title}</Heading>
+                    <Text color="blue.600" fontWeight="bold">→ To {trip.destination}</Text>
+                  </Box>
+                  <Button size="sm" colorScheme="blue" variant="solid" borderRadius="full">
+                    Chat
+                  </Button>
+                </Flex>
               </Box>
 
               <Divider mb={4} />
