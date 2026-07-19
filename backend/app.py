@@ -258,7 +258,7 @@ def get_trip_messages(trip_id):
 
     try:
         result = supabase.table('trip_messages')\
-                .select('*, users(first_name, profile_picture)')\
+                .select('*, users(first_name, last_name, profile_picture, role, school)')\
                 .eq('trip_id', trip_id)\
                 .order('created_at', desc=False)\
                 .execute()

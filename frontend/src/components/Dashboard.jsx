@@ -15,11 +15,19 @@ import TripsFeed from './TripsFeed.jsx'
 import DriverRequests from './DriverRequests.jsx'
 import RiderActivity from './RiderActivity.jsx'
 
+{/*
+    - Fetches the current user's profile to determine their role (driver vs rider)
+    - Manages the Available Trips vs Activity tab navigation
+    - Dynamically renders the correct dashboard component (DriverRequests vs RiderActivity)
+      based on the user's assigned role
+ */}
+
 export default function Dashboard() {
     const { token } = useAuth()
     const [role, setRole] = useState(null)
     const [loading, setLoading] = useState(true)
 
+    // fetch user's role
     useEffect(() => {
         if (!token) return
 
@@ -38,8 +46,8 @@ export default function Dashboard() {
     }
 
     return (
-        <Container maxW="md" h="100vh" p={0} display="flex" flexDir="column">
-            <Tabs isFitted colorScheme="blue" display="flex" flexDir="column" flex="1">
+        <Container maxW={{base:"full", ld:"5xl"}} h="100vh" p={{base:0, md:4}} display="flex" flexDir="column">
+            <Tabs isFitted={{base: true, md: false}} colorScheme="blue" display="flex" flexDir="column" flex="1">
                 <TabList>
                     <Tab fontWeight="bold">Available Trips</Tab>
                     <Tab fontWeight="bold">Activity</Tab>
