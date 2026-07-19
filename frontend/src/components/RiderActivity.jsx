@@ -26,6 +26,11 @@ import { useAuth } from '../auth.jsx'
 import { apiUrl } from '../api'
 import TripChat from './TripChat.jsx'
 
+{/*
+    This component acts as the Activity tab for users who are riders (passengers).
+    It fetches and displays the status of all trips the rider has requested to join.
+  */}
+
 export default function RiderActivity() {
   const { token } = useAuth()
   const [requests, setRequests] = useState([])

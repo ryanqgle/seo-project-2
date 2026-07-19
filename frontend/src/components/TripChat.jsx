@@ -9,20 +9,26 @@ import {
 } from '@chakra-ui/react'
 import { ArrowUpIcon } from '@chakra-ui/icons'
 
+{/*
+ A real time chat component for a specific trip. It handles fetching message history,
+ subscribing to live database updates via Supabase, and sending new messages.
+ */}
+
 function TripChat({tripId, currUserId}){
     const { token } = useAuth()
     const [messages, setMessages] = useState([])
     const [newMessage, setNewMessage] = useState("")
     const [tripTitle, setTripTitle] = useState("Loading...")
 
-    const messagesEndRef = useRef(null)
+    const messagesEndRef = useRef(null) // used to auto scroll the chat view to the bottom when new messages arrive
     const { isOpen, onOpen, onClose } = useDisclosure()
     const [selectedUser, setSelectedUser] = useState(null)
-    
 
+    // fetch initial data and set up the real time websocket listener
     useEffect(() => {
         if (!token) return
 
+        // grab the title of the trip for the chat header
         const fetchTripTitle = async () => {
             const { data, error } = await supabase
                 .from('trips')
@@ -34,12 +40,14 @@ function TripChat({tripId, currUserId}){
         }
         fetchTripTitle()
 
+        // fetch all prev chat history
         fetch(apiUrl(`/api/trips/${tripId}/messages`), {
             headers: {'Authorization': `Bearer ${token}`}
         })
             .then(res => res.json())
             .then(data => setMessages(data))
 
+        // instantly appends to messages array without refreshing when new rows are added to trip_messages
         const chatChannel = supabase.channel(`chat_${tripId}`)
             .on(
                 'postgres_changes',
@@ -56,7 +64,7 @@ function TripChat({tripId, currUserId}){
             .subscribe()
 
         return () => {
-            supabase.removeChannel(chatChannel)
+            supabase.removeChannel(chatChannel) // removes listener when chat is closed
         }
     }, [tripId, token])
 
@@ -71,11 +79,13 @@ function TripChat({tripId, currUserId}){
         return acc
     }, [])
 
+    // format timestamp for individual messages
     const formatTime = (dateString) => {
         if (!dateString) return ''
         return new Date(dateString).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
     }
 
+    // checks if two dates fall on the same calendar day
     const isSameDay = (date1, date2) => {
         if (!date1 || !date2) return false
         const d1 = new Date(date1)
@@ -85,6 +95,7 @@ function TripChat({tripId, currUserId}){
                d1.getDate() === d2.getDate()
     }
 
+    // generates text for date divider
     const formatDateDivider = (dateString) => {
         if (!dateString) return ''
         const date = new Date(dateString)

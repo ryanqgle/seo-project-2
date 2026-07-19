@@ -15,11 +15,19 @@ import TripsFeed from './TripsFeed.jsx'
 import DriverRequests from './DriverRequests.jsx'
 import RiderActivity from './RiderActivity.jsx'
 
+{/*
+    - Fetches the current user's profile to determine their role (driver vs rider)
+    - Manages the Available Trips vs Activity tab navigation
+    - Dynamically renders the correct dashboard component (DriverRequests vs RiderActivity)
+      based on the user's assigned role
+ */}
+
 export default function Dashboard() {
     const { token } = useAuth()
     const [role, setRole] = useState(null)
     const [loading, setLoading] = useState(true)
 
+    // fetch user's role
     useEffect(() => {
         if (!token) return
 
