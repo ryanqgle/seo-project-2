@@ -6,9 +6,9 @@
 //
 // Usage: fetch(apiUrl('/api/trips'))
 const LOCAL_URL = 'http://127.0.0.1:5000'
-let BASE_URL = import.meta.env.DEV
-    ? LOCAL_URL
-    : (import.meta.env.VITE_API_URL)
+// Fall back to the local
+// Flask server when no VITE_API_URL is provided.
+let BASE_URL = import.meta.env.VITE_API_URL || LOCAL_URL
 
 BASE_URL = BASE_URL.replace(/\/$/, '')
 
