@@ -59,6 +59,18 @@ function Login({ onClose }) {
     if (oauthError) setError(oauthError.message)
   }
 
+  const handleMicrosoft = async () => {
+    setError('')
+    const { error: oauthError } = await supabase.auth.signInWithOAuth({
+      provider: 'azure',
+      options: { 
+        scopes: 'email',
+        redirectTo: window.location.origin 
+      },
+    })
+    if (oauthError) setError(oauthError.message)
+  }
+
   return (
     <div className="login-overlay" onClick={onClose}>
       <div
@@ -106,8 +118,11 @@ function Login({ onClose }) {
               <strong>{email}</strong> already has an account. Sign in to
               continue.
             </p>
-            <button type="button" onClick={handleGoogle}>
+            <button type="button" onClick={handleGoogle} style={{ marginBottom: '10px' }}>
               Sign in with Google
+            </button>
+            <button type="button" onClick={handleMicrosoft}>
+              Sign in with Microsoft
             </button>
             <button
               type="button"
@@ -127,8 +142,11 @@ function Login({ onClose }) {
               No account found for <strong>{email}</strong>. Sign up with Google
               to get started.
             </p>
-            <button type="button" onClick={handleGoogle}>
+            <button type="button" onClick={handleGoogle} style={{ marginBottom: '10px' }}>
               Sign up with Google
+            </button>
+            <button type="button" onClick={handleMicrosoft}>
+              Sign up with Microsoft
             </button>
             <button
               type="button"
