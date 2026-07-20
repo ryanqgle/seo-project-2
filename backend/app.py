@@ -307,6 +307,41 @@ def get_rider_activity():
         print("RIDER ACTIVITY ERROR:", str(e))
         return jsonify({'error': str(e)}), 500
 
+@app.route('/api/trips/<int:trip_id>', methods=['DELETE'])
+def delete_trip(trip_id):
+    """Allows a driver to delete their own trip"""
+    user = get_authenticated_user()
+    if not user:
+        return {"status": "error", "message": "Unauthorized."}, 401
+
+    try:
+        supabase.table('trips')\
+            .delete()\
+            .eq('id', trip_id)\
+            .eq('driver_id', user.id)\
+            .execute()
+
+        return {"status": "success"}, 200
+    except Exception as e:
+        return {"status": "error", "message": str(e)}, 500
+
+@app.route('/api/requests/<int:request_id>', methods=['DELETE'])
+def delete_request(request_id):
+    """Allows a rider to cancel their request or a driver to kick an accepted rider"""
+    user = get_authenticated_user()
+    if not user:
+        return {"status": "error", "message": "Unauthorized."}, 401
+
+    try:
+        supabase.table('trip_requests')\
+            .delete()\
+            .eq('id', request_id)\
+            .execute()
+        
+        return {"status": "success"}, 200
+    except Exception as e:
+        return {"status": "error", "message": str(e)}, 500
+
 # Import blueprints after `supabase` is defined so trips.py can import it
 from trips import trips_bp
 app.register_blueprint(trips_bp)

@@ -21,7 +21,8 @@ import {
     DrawerContent,
     DrawerCloseButton,
     useDisclosure,
-    SimpleGrid
+    SimpleGrid,
+    HStack
 } from '@chakra-ui/react'
 import { useAuth } from '../auth.jsx'
 import { apiUrl } from '../api'
@@ -57,6 +58,20 @@ export default function RiderActivity() {
       })
   }, [token])
 
+  const handleCancelRequest = async (requestId) => {
+    if (!window.confirm("Are you sure you want to cancel this ride?")) return;
+
+    try {
+      await fetch(apiUrl(`/api/requests/${requestId}`), {
+        method: 'DELETE',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      setRequests(prev => prev.filter(r => r.id !== requestId));
+    } catch (err) {
+      console.error("Failed to cancel request", err);
+    }
+  };
+
   if (loading) {
     return <Center mt={10}><Spinner size="lg" color="blue.500" /></Center>
   }
@@ -84,17 +99,26 @@ export default function RiderActivity() {
                        → To {req.trips.destination}
                      </Text>
                   </Box>
-                  <Button
-                      size="sm"
-                      colorScheme="blue"
+                  <HStack>
+                    <Button
+                        size="sm"
+                        colorScheme="blue"
+                        borderRadius="full"
+                        onClick={() => {
+                            setActiveTripChat(req.trips.id)
+                            onOpen()
+                        }}
+                    >
+                        Chat
+                    </Button>
+                    <Button size="sm"
+                      colorScheme="red"
+                      variant="outline"
                       borderRadius="full"
-                      onClick={() => {
-                          setActiveTripChat(req.trips.id)
-                          onOpen()
-                      }}
-                  >
-                      Chat
-                  </Button>
+                      onClick={() => handleCancelRequest(req.id)}>
+                        Leave
+                    </Button>
+                  </HStack>
                 </Flex>
                 
                 <Flex align="center" bg="gray.50" p={2} mt={3} borderRadius="md" border="1px solid" borderColor="gray.100">
@@ -155,7 +179,15 @@ export default function RiderActivity() {
                     <Heading size="sm" color="gray.600" mb={1}>{req.trips.title}</Heading>
                     <Text fontSize="sm" color="gray.500">{req.trips.destination}</Text>
                   </Box>
-                  <Badge colorScheme="yellow" fontSize="2xs">Pending</Badge>
+                  <HStack>
+                    <Badge colorScheme="yellow" fontSize="2xs">Pending</Badge>
+                    <Button size="xs"
+                      colorScheme="red"
+                      variant="ghost"
+                      onClick={() => handleCancelRequest(req.id)}>
+                      Cancel
+                    </Button>
+                  </HStack>
                 </Flex>
               </CardBody>
             </Card>
