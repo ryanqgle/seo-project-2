@@ -48,7 +48,7 @@ function Header({ onLogin, isLoggedIn, onLogout, isDriver }) {
       
       {isLoggedIn && (
         <>
-          <Link as={RouterLink} to="/dashboard" onClick={onClose} fontWeight="bold" color={useColorModeValue("blue.600", "blue.400")} _hover={{ color: 'blue.500' }}>
+          <Link as={RouterLink} to="/feed" onClick={onClose} fontWeight="bold" color={useColorModeValue("blue.600", "blue.400")} _hover={{ color: 'blue.500' }}>
             Dashboard
           </Link>
 
