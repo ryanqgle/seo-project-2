@@ -114,7 +114,7 @@ function Shell() {
           }
         />
         <Route
-          path="/payment"
+          path="/payment/:tripRequestId"
           element={
             // <ProtectedRoute>
               <Payment />

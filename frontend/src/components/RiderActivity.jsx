@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
 import {
     Box,
     Card,
@@ -33,6 +34,7 @@ import TripChat from './TripChat.jsx'
 
 export default function RiderActivity() {
   const { token } = useAuth()
+  const navigate = useNavigate()
   const [requests, setRequests] = useState([])
   const [loading, setLoading] = useState(true)
   const { isOpen, onOpen, onClose } = useDisclosure()
@@ -61,6 +63,7 @@ export default function RiderActivity() {
 
   const upcomingTrips = requests.filter(req => req.status === 'accepted')
   const pendingTrips = requests.filter(req => req.status === 'pending')
+  const awaitingPaymentTrips = requests.filter(req => req.status === 'awaiting_payment')
 
   return (
     <Box py={6} px={4} maxW="full">
@@ -99,6 +102,36 @@ export default function RiderActivity() {
                   <Text fontSize="sm" color="gray.700" fontWeight="bold">
                     Driver: {req.trips.users?.first_name || 'Unknown'}
                   </Text>
+                </Flex>
+              </CardBody>
+            </Card>
+          ))}
+        </SimpleGrid>
+      )}
+
+      <Divider mb={6} borderColor="gray.200" />
+
+      {/* Awaiting payment */}
+      <Heading size="md" mb={4} color="gray.800">Awaiting Payment</Heading>
+      {awaitingPaymentTrips.length === 0 ? (
+        <Text color="gray.500" mb={6}>No rides waiting for payment.</Text>
+      ) : (
+        <SimpleGrid columns={{ base: 1, md: 2, lg: 3 }} spacing={5} w="full" mb={8}>
+          {awaitingPaymentTrips.map(req => (
+            <Card key={req.id} variant="outline" bg="blue.50" borderRadius="xl" border="1px solid" borderColor="blue.100">
+              <CardBody py={3}>
+                <Flex justify="space-between" align="center">
+                  <Box>
+                    <Heading size="sm" color="gray.700" mb={1}>{req.trips.title}</Heading>
+                    <Text fontSize="sm" color="gray.600">{req.trips.destination}</Text>
+                  </Box>
+                  <Button
+                    size="sm"
+                    colorScheme="blue"
+                    onClick={() => navigate(`/payment/${req.id}`)}
+                  >
+                    Pay Now
+                  </Button>
                 </Flex>
               </CardBody>
             </Card>
