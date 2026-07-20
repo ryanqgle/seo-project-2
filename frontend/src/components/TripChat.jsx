@@ -58,7 +58,19 @@ function TripChat({tripId, currUserId}){
                     filter: `trip_id=eq.${tripId}`
                 },
                 (payload) => {
-                    setMessages((prev) => [...prev, payload.new])
+                    //fetch user data for incoming msg
+                    const { data: userData } = supabase
+                        .from('users')
+                        .select('first_name, last_name, profile_picture, role, school')
+                        .eq('id', payload.new.user_id)
+                        .single()
+
+                    const newMessage = {
+                         ...payload.new,
+                        users: userData || null
+                    }
+
+                    setMessages((prev) => [...prev, newMessage])
                 }
             )
             .subscribe()
@@ -196,8 +208,8 @@ function TripChat({tripId, currUserId}){
                                 {!isMe && (
                                     <Avatar
                                         size="sm" 
-                                        name={sender.first_name} 
-                                        src={sender.profile_picture} 
+                                        name={`${sender.first_name || ''} ${sender.last_name || ''}`}
+                                        src={sender.profile_picture}
                                         mr={2} 
                                         alignSelf="flex-end"
                                         cursor="pointer"
