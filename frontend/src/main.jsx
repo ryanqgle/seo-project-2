@@ -1,6 +1,6 @@
 import { StrictMode, useState, useEffect } from 'react'
 import { createRoot } from 'react-dom/client'
-import { ChakraProvider } from '@chakra-ui/react'
+import { ChakraProvider, Box } from '@chakra-ui/react'
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import './css/index.css'
 import { AuthProvider, useAuth } from './auth.jsx'
@@ -65,12 +65,14 @@ function Shell() {
 
   return (
     <ChakraProvider>
+      <Box display="flex" flexDirection="column" minH="100vh">
       <Header
         isLoggedIn={isLoggedIn}
         isDriver={isDriver}
         onLogin={() => setShowLogin(true)}
         onLogout={logout}
       />
+      <Box as="main" flex="1" minH="0" w="100%" display="flex" flexDirection="column">
       <Routes>
         <Route path="/" element={<Home />} />
         <Route
@@ -112,7 +114,7 @@ function Shell() {
           }
         />
         <Route
-          path="/payment"
+          path="/payment/:tripRequestId"
           element={
             // <ProtectedRoute>
               <Payment />
@@ -130,7 +132,9 @@ function Shell() {
         <Route path="*" element={<Navigate to="/" replace />} />
 
       </Routes>
+      </Box>
       <Footer />
+      </Box>
       {showLogin && <Login onClose={() => setShowLogin(false)} />}
     </ChakraProvider>
   )
