@@ -42,38 +42,46 @@ function TripChat({tripId, currUserId}){
         fetchTripTitle()
 
         const fetchParticipants = async () => {
-            const driverResult = await supabase
-                .from('users')
-                .select('id, first_name, last_name, profile_picture, role, school')
-                .eq('id', currUserId)
-                .single()
+        const tripResult = await supabase
+            .from('trips')
+            .select('driver_id')
+            .eq('id', tripId)
+            .single()
 
-            const requestsRes = await fetch(apiUrl(`/api/trips/${tripId}/requests`), {
-                headers: { 'Authorization': `Bearer ${token}` }
-            })
+        const driverId = tripResult.data?.driver_id
 
-            const requests = await requestsRes.json()
+        const driverResult = await supabase
+            .from('users')
+            .select('id, first_name, last_name, profile_picture, role, school')
+            .eq('id', driverId)
+            .single()
 
-            const paidRiders = requests
-                .filter((request) => ['accepted', 'picked_up'].includes(request.status))
-                .map((request) => ({
-                    id: request.users?.id || request.passenger_id,
-                    ...request.users,
-                }))
+        const requestsRes = await fetch(apiUrl(`/api/trips/${tripId}/requests`), {
+            headers: { Authorization: `Bearer ${token}` }
+        })
 
-            const allParticipants = []
+        const requests = await requestsRes.json()
 
-            if (driverResult.data) {
-                allParticipants.push(driverResult.data)
+        const paidRiders = requests
+            .filter((request) => ['accepted', 'picked_up'].includes(request.status))
+            .map((request) => ({
+            id: request.users?.id || request.passenger_id,
+            ...request.users,
+            }))
+
+        const allParticipants = []
+
+        if (driverResult.data) {
+            allParticipants.push(driverResult.data)
+        }
+
+        paidRiders.forEach((rider) => {
+            if (rider.id && !allParticipants.find((user) => user.id === rider.id)) {
+            allParticipants.push(rider)
             }
+        })
 
-            paidRiders.forEach((rider) => {
-                if (rider.id && !allParticipants.find((user) => user.id === rider.id)) {
-                    allParticipants.push(rider)
-                }
-            })
-
-            setParticipants(allParticipants)
+        setParticipants(allParticipants)
         }
 
         fetchParticipants()
@@ -116,7 +124,7 @@ function TripChat({tripId, currUserId}){
         return () => {
             supabase.removeChannel(chatChannel) // removes listener when chat is closed
         }
-    }, [tripId, token])
+    }, [tripId, token, currUserId])
 
     useEffect(() => {
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
