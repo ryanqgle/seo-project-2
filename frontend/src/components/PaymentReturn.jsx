@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Navigate, Link as RouterLink } from 'react-router-dom'
+import {apiUrl} from '../api'
 import {
   Box,
   Button,
