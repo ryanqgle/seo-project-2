@@ -4,35 +4,77 @@ import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 import { Box, HStack, Text } from '@chakra-ui/react'
 
-// Colored, labeled circular markers for the route's stops: "S" for the start,
-// numbers for each pickup in visiting order, and "E" for the end. Built with a
-// divIcon so we don't depend on Leaflet's image assets here.
+const ORIGIN_COLOR = '#2f855a'
+const PICKUP_COLOR = '#2b6cb0'
+const DEST_COLOR = '#c53030'
+
+// Escape values before injecting them into a divIcon's raw HTML string (profile
+// picture URLs and names come from user data, so treat them as untrusted).
+function escapeHtml(value) {
+  return String(value ?? '').replace(/[&<>"']/g, (c) => (
+    { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]
+  ))
+}
+
+// The stop owner's full name, or '' if unknown.
+function personName(stop) {
+  return `${stop.first_name || ''} ${stop.last_name || ''}`.trim()
+}
+
+// First initials, used as a fallback inside the pin when there's no photo.
+function initials(stop) {
+  const text = `${(stop.first_name || '')[0] || ''}${(stop.last_name || '')[0] || ''}`
+  return text.toUpperCase() || '•'
+}
+
+// Small labeled circular marker ("E" for the end). Built with a divIcon so we
+// don't depend on Leaflet's image assets here.
 function stopIcon(label, bg) {
   return L.divIcon({
     className: '',
     html: `<div style="background:${bg};color:#fff;width:26px;height:26px;border-radius:50%;
       display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;
-      border:2px solid #fff;box-shadow:0 0 3px rgba(0,0,0,.45)">${label}</div>`,
+      border:2px solid #fff;box-shadow:0 0 3px rgba(0,0,0,.45)">${escapeHtml(label)}</div>`,
     iconSize: [26, 26],
     iconAnchor: [13, 13],
     popupAnchor: [0, -13],
   })
 }
 
-const ORIGIN_COLOR = '#2f855a'
-const PICKUP_COLOR = '#2b6cb0'
-const DEST_COLOR = '#c53030'
+// A circular pin showing the stop owner's profile picture. Falls back to the person's initials when there's no picture.
+function photoIcon(stop, ring) {
+  const src = stop.profile_picture
+  const inner = src
+    ? `<img src="${escapeHtml(src)}" alt="" style="width:100%;height:100%;object-fit:cover;display:block" />`
+    : `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;
+        background:${ring};color:#fff;font-weight:700;font-size:12px">${escapeHtml(initials(stop))}</div>`
+  return L.divIcon({
+    className: '',
+    html: `<div style="width:36px;height:36px;border-radius:50%;overflow:hidden;background:#fff;
+      border:3px solid ${ring};box-shadow:0 0 4px rgba(0,0,0,.5)">${inner}</div>`,
+    iconSize: [36, 36],
+    iconAnchor: [18, 18],
+    popupAnchor: [0, -18],
+  })
+}
 
 function iconForStop(stop) {
-  if (stop.type === 'origin') return stopIcon('S', ORIGIN_COLOR)
+  // Origin (the driver) and pickups (riders) show a face; the destination is a
+  // shared endpoint with no single person, so it keeps the "E" marker.
   if (stop.type === 'destination') return stopIcon('E', DEST_COLOR)
-  return stopIcon(String(stop.order), PICKUP_COLOR)
+  if (stop.type === 'origin') return photoIcon(stop, ORIGIN_COLOR)
+  return photoIcon(stop, PICKUP_COLOR)
 }
 
 function labelForStop(stop) {
-  if (stop.type === 'origin') return `Start — ${stop.address || 'Origin'}`
-  if (stop.type === 'destination') return `Destination — ${stop.address || 'End'}`
-  return `Pickup ${stop.order} — ${stop.address || 'Rider pickup'}`
+  const name = personName(stop)
+  if (stop.type === 'origin') {
+    return `${name || 'Driver'} (start)${stop.address ? ` — ${stop.address}` : ''}`
+  }
+  if (stop.type === 'destination') {
+    return `Destination — ${stop.address || 'End'}`
+  }
+  return `${name || `Pickup ${stop.order}`}${stop.address ? ` — ${stop.address}` : ''}`
 }
 
 // Miles read better than meters for US riders; round trip time to minutes/hours.
