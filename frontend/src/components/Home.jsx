@@ -9,14 +9,13 @@ import {
   Heading,
   HStack,
   Image,
-  Input,
   SimpleGrid,
   Text,
   useToast,
   useColorModeValue,
   VStack,
 } from '@chakra-ui/react'
-import { SearchIcon, AddIcon, ChatIcon, useColorMode } from '@chakra-ui/icons'
+import { SearchIcon, AddIcon, ChatIcon } from '@chakra-ui/icons'
 import { useAuth } from '../auth.jsx'
 import { apiUrl } from '../api'
 
@@ -26,7 +25,9 @@ export default function Home() {
   const { token } = useAuth()
   const [role, setRole] = useState(null)
   const logoSrc = useColorModeValue('/logo-black.PNG', '/logo-white.PNG')
-  const imageBg = useColorModeValue('purple.50', 'gray.800')
+  const imageBg = useColorModeValue('white', 'gray.800')
+  const mutedText = useColorModeValue('gray.600', 'gray.300')
+  const iconColor = useColorModeValue('black', 'white')
 
 
   useEffect(() => {
@@ -87,7 +88,7 @@ export default function Home() {
   }
 
   return (
-    <Box maxW="7xk" max="auto" px={{ base: 5, md: 16 }} py={{ base: 10, md: 16 }}>
+    <Box maxW="7xl" mx="auto" px={{ base: 5, md: 16 }} py={{ base: 10, md: 16 }}>
       <Flex
         align="center"
         justify="space-between"
@@ -95,7 +96,7 @@ export default function Home() {
         direction={{ base: 'column', lg: 'row' }}
       >
         <Box flex="1" w="full" textAlign="left">
-          <Text fontWeight="bold" color="gray.600" mb={4}>
+          <Text fontWeight="bold" color={mutedText} mb={4}>
             Share rides with students near you
           </Text>
 
@@ -104,61 +105,37 @@ export default function Home() {
             lineHeight="1.05"
             mb={5}
           >
-            Where are you headed?
+            Hop In
           </Heading>
 
-          <Text fontSize="lg" color="gray.600" maxW="480px" mb={8}>
-            Find campus rides, offer open seats, and get there together with verified students
+          <Text fontSize="lg" color={mutedText} maxW="480px" mb={8}>
+            Share rides with fellow students. Save money, reduce traffic, and get there together
           </Text>
 
-          <Card maxW="520px" borderRadius="2xl" boxShadow="md">
-            <CardBody>
-              <VStack spacing={4} align="stretch">
-                <Box>
-                  <Text fontSize="sm" fontWeight="bold" mb={1}>
-                    From
-                  </Text>
-                  <Input
-                    placeholder="Pickup location"
-                    borderRadius="lg"
-                    isReadOnly
-                  />
-                </Box>
+        <Card maxW="520px" borderRadius="2xl">
+          <CardBody>
+            <VStack spacing={4} align="stretch">
+              <HStack spacing={3}>
+                <Button
+                  borderRadius="lg"
+                  leftIcon={<SearchIcon />}
+                  onClick={handleFindRide}
+                >
+                  Find Rides
+                </Button>
 
-                <Box>
-                  <Text fontSize="sm" fontWeight="bold" mb={1}>
-                    To
-                  </Text>
-                  <Input
-                    placeholder="Destination"
-                    borderRadius="lg"
-                    isReadOnly
-                  />
-                </Box>
-
-                <HStack spacing={3}>
-                  <Button
-                    colorScheme="purple"
-                    borderRadius="lg"
-                    leftIcon={<SearchIcon />}
-                    onClick={handleFindRide}
-                  >
-                    Find Rides
-                  </Button>
-
-                  <Button
-                    variant="outline"
-                    colorScheme="purple"
-                    borderRadius="lg"
-                    leftIcon={<AddIcon />}
-                    onClick={handleOfferRide}
-                  >
-                    Offer Ride
-                  </Button>
-                </HStack>
-              </VStack>
-            </CardBody>
-          </Card>
+                <Button
+                  variant="outline"
+                  borderRadius="lg"
+                  leftIcon={<AddIcon />}
+                  onClick={handleOfferRide}
+                >
+                  Offer Ride
+                </Button>
+              </HStack>
+            </VStack>
+          </CardBody>
+        </Card>
         </Box>
 
         <Box flex="1" display="flex" justifyContent="center" alignItems="center">
@@ -168,7 +145,7 @@ export default function Home() {
             p={{ base: 8, md: 12 }}
             w="full"
             maxW="440px"
-            displays="flex"
+            display="flex"
             justifyContent="center"
             alignItems="center"
           >
@@ -190,11 +167,11 @@ export default function Home() {
         <SimpleGrid columns={{ base: 1, md: 3 }} spacing={5}>
           <Card borderRadius="2xl" variant="outline">
             <CardBody>
-              <SearchIcon boxSize={6} mb={4} color="purple.500" />
+              <SearchIcon boxSize={6} mb={4} color={iconColor} />
               <Heading size="md" mb={2}>
                 Find a ride
               </Heading>
-              <Text color="gray.600" mb={4}>
+              <Text color={mutedText} mb={4}>
                 Browse available trips and request a seat
               </Text>
               <Button size="sm" variant="ghost" onClick={handleFindRide}>
@@ -205,11 +182,11 @@ export default function Home() {
 
           <Card borderRadius="2xl" variant="outline">
             <CardBody>
-              <AddIcon boxSize={6} mb={4} color="purple.500" />
+              <AddIcon boxSize={6} mb={4} color={iconColor} />
               <Heading size="md" mb={2}>
                 Offer a ride
               </Heading>
-              <Text color="gray.600" mb={4}>
+              <Text color={mutedText} mb={4}>
                 Post a trip and help other students get there
               </Text>
               <Button size="sm" variant="ghost" onClick={handleOfferRide}>
@@ -220,11 +197,11 @@ export default function Home() {
 
           <Card borderRadius="2xl" variant="outline">
             <CardBody>
-              <ChatIcon boxSize={6} mb={4} color="purple.500" />
+              <ChatIcon boxSize={6} mb={4} color={iconColor} />
               <Heading size="md" mb={2}>
                 Chat and pay
               </Heading>
-              <Text color="gray.600" mb={4}>
+              <Text color={mutedText} mb={4}>
                 Coordinate pickup details and pay securely after approval
               </Text>
               <Button size="sm" variant="ghost" onClick={() => navigate('/dashboard')}>
