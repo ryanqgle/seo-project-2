@@ -33,7 +33,7 @@ const PIN_ICON = L.icon({
 
 // Default map center when the picker opens with no prior location. Rice
 // University — a reasonable neutral starting view; the pin is what matters.
-const DEFAULT_CENTER = [29.7174, -95.4018]
+const DEFAULT_CENTER = [40.7589, -73.9851]
 
 // Searches are restricted to roughly this many miles around the current map
 // center, so results stay local while still
