@@ -169,12 +169,12 @@ function TripsFeed() {
       const data = await res.json()
 
       if (!res.ok) {
-        throw new Error(data.message || data.error || 'Failed to send request.')
+        throw new Error(data.message || data.error || 'Could not request this ride')
       }
 
       toast({
         title: 'Request sent!',
-        description: "We've notified the driver of your request.",
+        description: "We've notified the driver of your request",
         status: 'success',
         duration: 3000,
         isClosable: true,
@@ -183,7 +183,7 @@ function TripsFeed() {
     } catch (err) {
       toast({
         title: 'Could not send request.',
-        description: err.message || 'Could not send request.',
+        description: err.message || 'Could not send request',
         status: 'error',
         duration: 3000,
         isClosable: true,

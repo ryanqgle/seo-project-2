@@ -57,14 +57,31 @@ def create_request(trip_id):
         trip_result = supabase.table('trips').select('*').eq('id', trip_id).execute()
         if not trip_result.data:
             return jsonify({'error': 'Trip not found'}), 404
+
         trip = trip_result.data[0]
 
         if trip['driver_id'] == user.id:
             return jsonify({'error': "You can't request your own trip"}), 400
 
+        active_statuses = ['pending', 'awaiting_payment', 'accepted', 'picked_up']
+
+        existing_active_request = (
+            supabase
+            .table('trip_requests')
+            .select('id, status, trip_id')
+            .eq('passenger_id', user.id)
+            .in_('status', active_statuses)
+            .execute()
+        )
+
+        if existing_active_request.data:
+            return jsonify({
+                'error': 'You already have an active ride request. Finish or cancel it before requesting another ride.'
+            }), 400
+
         if trip['available_seats'] < 1:
             return jsonify({'error': 'No seats left on this trip'}), 400
-
+        
         data = request.json or {}
         pickup_lat = data.get('pickup_lat')
         pickup_lng = data.get('pickup_lng')
@@ -81,7 +98,9 @@ def create_request(trip_id):
             'pickup_lat': float(pickup_lat),
             'pickup_lng': float(pickup_lng),
         }).execute()
-        return jsonify(result.data[0]),201
+
+        return jsonify(result.data[0]), 201
+    
     except Exception as error:
         print(f"Error creating request: {error}")
         return jsonify({'error': str(error)}), 500
