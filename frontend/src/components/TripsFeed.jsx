@@ -501,7 +501,7 @@ function TripsFeed() {
                   size="sm"
                   onClick={() => openPickup(trip)}
                   >
-                    Request to Join
+                    {trip.available_seats <= 0 ? 'Join Waitlist' : 'Request to Join'}
                   </Button>
                 )}
 

@@ -62,8 +62,8 @@ def create_request(trip_id):
         if trip['driver_id'] == user.id:
             return jsonify({'error': "You can't request your own trip"}), 400
 
-        if trip['available_seats'] < 1:
-            return jsonify({'error': 'No seats left on this trip'}), 400
+        #if trip['available_seats'] < 1:
+         #   return jsonify({'error': 'No seats left on this trip'}), 400
 
         data = request.json or {}
         pickup_lat = data.get('pickup_lat')

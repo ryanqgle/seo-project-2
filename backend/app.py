@@ -333,11 +333,24 @@ def delete_request(request_id):
         return {"status": "error", "message": "Unauthorized."}, 401
 
     try:
-        supabase.table('trip_requests')\
-            .delete()\
-            .eq('id', request_id)\
-            .execute()
-        
+        req_res = supabase.table('trip_requests').select('*').eq('id', request_id).execute()
+        if not req_res.data:
+            return {"status": "error", "message": "Request not found."}, 404
+
+        request_data = req_res.data[0]
+
+        supabase.table('trip_requests').delete().eq('id', request_id).execute()
+
+        if request_data['status'] in ['accepted', 'awaiting_payment', 'picked_up']:
+            trip_id = request_data['trip_id']
+            trip_res = supabase.table('trips').select('available_seats').eq('id', trip_id).execute()
+            if trip_res.data:
+                current_seats = trip_res.data[0]['available_seats']
+                supabase.table('trips').update({
+                    'available_seats': current_seats + 1,
+                    'status': 'open' 
+                }).eq('id', trip_id).execute()
+
         return {"status": "success"}, 200
     except Exception as e:
         return {"status": "error", "message": str(e)}, 500

@@ -428,7 +428,7 @@ function DriverRequests() {
                         </Text>
                       </Flex>
                       <HStack spacing={1}>
-                          <Button size="xs" colorScheme="green" isDisabled={!payoutsReady} onClick={() => handleDecision(trip.id, request.id, 'accepted')}>Accept</Button>
+                          <Button size="xs" colorScheme="green" isDisabled={!payoutsReady || trip.available_seats == 0} onClick={() => handleDecision(trip.id, request.id, 'accepted')}>Accept</Button>
                           <Button size="xs" colorScheme="red" variant="ghost" onClick={() => handleDecision(trip.id, request.id, 'declined')}>Decline</Button>
                       </HStack>
                     </Flex>
