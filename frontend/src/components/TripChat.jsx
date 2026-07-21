@@ -2,12 +2,11 @@ import React, { useState, useEffect, useRef } from 'react'
 import { supabase } from '../dbConnection'
 import { useAuth } from '../auth'
 import { apiUrl } from '../api'
-import RouteModalButton from './RouteModalButton.jsx'
 import {
     Box, Flex, VStack, Text, Input, IconButton, Avatar,
     AvatarGroup, Tooltip, useDisclosure, Modal, ModalOverlay,
     ModalContent, ModalHeader, ModalCloseButton, ModalBody, Heading, Badge,
-    Button, HStack, Divider
+    HStack
 } from '@chakra-ui/react'
 import { ArrowUpIcon } from '@chakra-ui/icons'
 
@@ -16,18 +15,11 @@ import { ArrowUpIcon } from '@chakra-ui/icons'
  subscribing to live database updates via Supabase, and sending new messages.
  */}
 
-function TripChat({tripId, currUserId}){
+function TripChat({tripId, currUserId, tripTitle = 'Chat'}){
     const { token } = useAuth()
     const [messages, setMessages] = useState([])
     const [newMessage, setNewMessage] = useState("")
-    const [tripTitle, setTripTitle] = useState("Loading...")
     const [participants, setParticipants] = useState([])
-    const [tripInfo, setTripInfo] = useState(null)
-    const {
-        isOpen: isRideInfoOpen,
-        onOpen: onRideInfoOpen,
-        onClose: onRideInfoClose
-    } = useDisclosure()
 
     const messagesEndRef = useRef(null) // used to auto scroll the chat view to the bottom when new messages arrive
     const { isOpen, onOpen, onClose } = useDisclosure()
@@ -36,34 +28,6 @@ function TripChat({tripId, currUserId}){
     // fetch initial data and set up the real time websocket listener
     useEffect(() => {
         if (!token) return
-
-        const fetchTripInfo = async () => {
-            const { data, error } = await supabase
-                .from('trips')
-                .select(`
-                    id,
-                    title,
-                    destination,
-                    departure_time,
-                    available_seats,
-                    cost,
-                    notes,
-                    users (
-                        first_name,
-                        last_name,
-                        profile_picture
-                    )
-                `)
-                .eq('id', tripId)
-                .single()
-
-            if (data && !error) {
-                setTripTitle(data.title)
-                setTripInfo(data)
-            }
-        }
-
-        fetchTripInfo()
 
         const fetchParticipants = async () => {
         const tripResult = await supabase
@@ -214,17 +178,9 @@ function TripChat({tripId, currUserId}){
             {/* participants*/}
             <Flex align="center" justify="space-between" pl={4} pr={12} py={3} borderBottom="1px solid" borderColor="gray.100" bg="gray.50">
                 <HStack spacing={2} minW={0}>
-                    <Heading size="sm" color="gray.800" isTruncated maxW="180px">
+                    <Heading size="sm" color="gray.800" whiteSpace="normal" noOfLines={2} maxW="260px">
                         {tripTitle}
                     </Heading>
-
-                    <Button size="sm" variant="outline" borderRadius="full" onClick={onRideInfoOpen}>
-                        Ride Info
-                    </Button>
-
-                    <RouteModalButton tripId={tripId} size="sm" variant="outline" borderRadius="full">
-                        Route
-                    </RouteModalButton>
                 </HStack>
 
                 <AvatarGroup size="sm" max={4} spacing="-0.5rem">
@@ -354,62 +310,6 @@ function TripChat({tripId, currUserId}){
                     </Flex>
                 </form>
             </Box>
-
-            {/* ride info pop up */}
-            <Modal isOpen={isRideInfoOpen} onClose={onRideInfoClose} isCentered>
-                <ModalOverlay />
-                <ModalContent borderRadius="2xl">
-                    <ModalHeader>Ride Info</ModalHeader>
-                    <ModalCloseButton />
-
-                    <ModalBody pb={6}>
-                        <VStack align="stretch" spacing={3}>
-                            <Heading size="sm">
-                                {tripInfo?.title || 'Ride'}
-                            </Heading>
-
-                            <Text>
-                                <strong>Destination:</strong> {tripInfo?.destination || 'Not listed'}
-                            </Text>
-
-                            <Text>
-                                <strong>Departure:</strong>{' '}
-                                {tripInfo?.departure_time
-                                    ? new Date(tripInfo.departure_time).toLocaleString()
-                                    : 'Not listed'}
-                            </Text>
-
-                            <Text>
-                                <strong>Seats:</strong> {tripInfo?.available_seats ?? 'Not listed'}
-                            </Text>
-
-                            <Text>
-                                <strong>Cost:</strong>{' '}
-                                {tripInfo?.cost ? `$${tripInfo.cost}` : 'Free / not listed'}
-                            </Text>
-
-                            {tripInfo?.notes && (
-                                <Text>
-                                    <strong>Notes:</strong> {tripInfo.notes}
-                                </Text>
-                            )}
-
-                            <Divider />
-
-                            <Flex align="center" bg="gray.50" p={3} borderRadius="md">
-                                <Avatar
-                                    size="sm"
-                                    src={tripInfo?.users?.profile_picture}
-                                    mr={2}
-                                />
-                                <Text fontWeight="bold">
-                                    Driver: {tripInfo?.users?.first_name || 'Unknown'} {tripInfo?.users?.last_name || ''}
-                                </Text>
-                            </Flex>
-                        </VStack>
-                    </ModalBody>
-                </ModalContent>
-            </Modal>
 
             {/* participant pop up */}
             <Modal isOpen={isOpen} onClose={onClose} isCentered size="xs">

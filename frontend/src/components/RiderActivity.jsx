@@ -61,6 +61,7 @@ export default function RiderActivity() {
   const [loading, setLoading] = useState(true)
   const { isOpen, onOpen, onClose } = useDisclosure()
   const [activeTripChat, setActiveTripChat] = useState(null)
+  const [activeTripTitle, setActiveTripTitle] = useState('')
 
   useEffect(() => {
     if (!token) return
@@ -164,6 +165,7 @@ export default function RiderActivity() {
                     borderRadius="full"
                     onClick={() => {
                       setActiveTripChat(req.trips.id)
+                      setActiveTripTitle(req.trips.title)
                       onOpen()
                     }}
                   >
@@ -325,7 +327,7 @@ export default function RiderActivity() {
 
             {activeTripChat && (
               <Box flex="1" overflow="hidden">
-                 <TripChat tripId={activeTripChat} currUserId={requests[0]?.passenger_id} />
+                 <TripChat tripId={activeTripChat} currUserId={requests[0]?.passenger_id} tripTitle={activeTripTitle} />
               </Box>
             )}
 
