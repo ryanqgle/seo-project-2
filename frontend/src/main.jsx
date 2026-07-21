@@ -19,6 +19,7 @@ import Dashboard from './components/Dashboard.jsx'
 import Payment from './components/Payment.jsx'
 import PaymentReturn from './components/PaymentReturn.jsx'
 import theme from './components/theme.jsx'
+import RequireProfile from './components/RequireProfile.jsx'
 
 // Wraps routes that require a logged-in user. While the session is still
 // loading we render nothing so we don't redirect prematurely; once loaded, an
@@ -104,7 +105,9 @@ function Shell() {
           path="/dashboard" 
           element={
             <ProtectedRoute>
-              {isDriver ? <DriverRequests /> : <Dashboard />}
+              <RequireProfile>
+               <Dashboard />
+              </RequireProfile>
             </ProtectedRoute>
           } 
         />
@@ -112,7 +115,9 @@ function Shell() {
           path="/create-ride"
           element={
             <ProtectedRoute>
-              <CreateRideForm />
+              <RequireProfile>
+                <CreateRideForm />
+              </RequireProfile>
             </ProtectedRoute>
           }
         />
