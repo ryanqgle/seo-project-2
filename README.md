@@ -112,7 +112,7 @@ under `/api` in development.
 | Method | Path | Auth | Description |
 |---|---|---|---|
 | `GET` | `/api/trips` | – | List open trips (soonest first) with driver info |
-| `POST` | `/api/trips` | ✅ | Create a trip (driver) |
+| `POST` | `/api/trips` | ✅ | Create a trip with origin, destination, coordinates, departure time, seats, cost, and category |
 
 ### Join requests (`requests.py`)
 
@@ -121,6 +121,13 @@ under `/api` in development.
 | `GET` | `/api/trips/<trip_id>/requests` | – | List a trip's join requests |
 | `POST` | `/api/trips/<trip_id>/requests` | ✅ | Request to join a trip |
 | `PATCH` | `/api/trips/<trip_id>/requests/<request_id>` | ✅ | Driver accepts/declines a request |
+
+### Payments (`payments.py`)
+
+| Method | Path | Auth | Description |
+|---|---|---|---|
+| `POST` | `/api/create-checkout-session` | ✅ | Create an embedded Stripe checkout session for the authenticated rider's `awaiting_payment` request |
+| `GET` | `/api/session_status` | – | Read a Stripe checkout session's status by `session_id` |
 
 ---
 
