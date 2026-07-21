@@ -18,6 +18,7 @@ import CreateRideForm from './components/CreateRideForm.jsx'
 import Dashboard from './components/Dashboard.jsx'
 import Payment from './components/Payment.jsx'
 import PaymentReturn from './components/PaymentReturn.jsx'
+import theme from './components/theme.jsx'
 
 // Wraps routes that require a logged-in user. While the session is still
 // loading we render nothing so we don't redirect prematurely; once loaded, an
@@ -64,7 +65,7 @@ function Shell() {
   }, [isLoggedIn])
 
   return (
-    <ChakraProvider>
+    <ChakraProvider theme={theme}>
       <Box display="flex" flexDirection="column" minH="100vh">
       <Header
         isLoggedIn={isLoggedIn}

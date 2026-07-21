@@ -64,7 +64,7 @@ export default function ProfileView() {
     if (loading) {
         return (
             <Center mt={20}>
-                <Spinner size="xl" color="blue.500" />
+                <Spinner size="xl"/>
             </Center>
         )
     }
@@ -78,7 +78,7 @@ export default function ProfileView() {
                     <VStack spacing={5}>
                         <Avatar size="2xl" name={fullName} src={profile.profile_picture || undefined} />
 
-                        <Heading size="lg" textAlign="center" color="gray.700">
+                        <Heading size="lg" textAlign="center">
                             {fullName || 'Your Profile'}
                         </Heading>
 
@@ -89,7 +89,6 @@ export default function ProfileView() {
                         </VStack>
 
                         <Button
-                            colorScheme="blue"
                             size="lg"
                             w="full"
                             mt={4}
@@ -109,7 +108,7 @@ export default function ProfileView() {
 function ProfileField({ label, value }) {
     return (
         <HStack justify="space-between" borderBottomWidth="1px" borderColor="gray.100" pb={2}>
-            <Text fontSize="sm" fontWeight="bold" color="gray.500">{label}</Text>
+            <Text fontSize="sm" fontWeight="bold" color="gray.500" _dark={{ color: "gray.400"}}>{label}</Text>
             <Text fontSize="sm" color="gray.800">{value || '—'}</Text>
         </HStack>
     )

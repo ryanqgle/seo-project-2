@@ -110,7 +110,7 @@ export default function UserProfile() {
     <Box p={4}>
         <Card maxW="lg" mx="auto" boxShadow="lg" borderRadius="xl">
             <CardBody p={8}>
-                <Heading size="lg" mb={6} textAlign="center" color="gray.700">
+                <Heading size="lg" mb={6} textAlign="center">
                     Edit Profile
                 </Heading>
                  <form onSubmit={handleSave}>
@@ -177,8 +177,7 @@ export default function UserProfile() {
 
                             <Button
                                 type="submit" 
-                                colorScheme="blue" 
-                                size="lg" 
+                                size="lg"
                                 w="full" 
                                 mt={4} 
                                 isLoading={saving} 

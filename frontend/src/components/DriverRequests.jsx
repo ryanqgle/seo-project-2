@@ -234,7 +234,7 @@ function DriverRequests() {
 
   return (
     <Box maxW="7xl" mx="auto" py={8} px={4}>
-      <Heading size="xl" mb={6} color="gray.800">
+      <Heading size="xl" mb={6}>
         Driver Dashboard
       </Heading>
 
@@ -259,22 +259,22 @@ function DriverRequests() {
           const accepted = tripReqs.filter(r => r.status === 'accepted')
 
           return (
-            <Card key={trip.id} variant="outline" boxShadow="sm" borderRadius="xl" border="1px solid" borderColor="gray.100">
+            <Card key={trip.id} variant="outline" boxShadow="sm" borderRadius="xl" >
               <CardBody>
                 
                 {/* header + buttons */}
                 <Box mb={4}>
-                  <Heading size="md" color="gray.800" mb={1} noOfLines={1}>{trip.title}</Heading>
-                  <Text color="blue.600" fontWeight="bold" fontSize="sm" noOfLines={1} title={trip.destination}>
+                  <Heading size="md" mb={1} noOfLines={1}>{trip.title}</Heading>
+                  <Text fontWeight="bold" fontSize="sm" noOfLines={1} title={trip.destination}>
                       → To {trip.destination}
                   </Text>
-                  
+
                   <Flex mt={4} justify="space-between" align="center" w="full">
                     <HStack spacing={2}>
-                      <Button size="sm" colorScheme="blue" borderRadius="full" onClick={() => { setActiveTripChat(trip.id); onOpen() }}>
+                      <Button size="sm" borderRadius="full" onClick={() => { setActiveTripChat(trip.id); onOpen() }}>
                         Chat
                       </Button>
-                      <RouteModalButton tripId={trip.id} size="sm" colorScheme="gray" variant="outline" borderRadius="full">
+                      <RouteModalButton tripId={trip.id} size="sm" variant="outline" borderRadius="full">
                         Route
                       </RouteModalButton>
                     </HStack>
@@ -284,41 +284,41 @@ function DriverRequests() {
                   </Flex>
                 </Box>
 
-                <Divider mb={4} borderColor="gray.200" />
+                <Divider mb={4} />
 
                 {/* collapsible accepted riders tracker */}
                 {accepted.length > 0 && (
                   <Accordion allowToggle mb={4}>
-                      <AccordionItem border="none" bg="green.50" borderRadius="md">
-                          <AccordionButton _hover={{ bg: "green.100" }} borderRadius="md" px={3} py={2}>
+                      <AccordionItem border="none" bg="green.50" _dark={{ bg: "green.900" }} borderRadius="md">
+                          <AccordionButton _hover={{ bg: "green.100", _dark: { bg: "green.800" } }} borderRadius="md" px={3} py={2}>
                           <Box flex="1" textAlign="left">
-                              <Text fontSize="sm" fontWeight="bold" color="green.700">
+                              <Text fontSize="sm" fontWeight="bold" color="green.700" _dark={{ color: "green.100" }}>
                                   Accepted Riders ({accepted.length}/{trip.available_seats || '?'} Seats)
                               </Text>
                           </Box>
-                          <AccordionIcon color="green.700" />
+                          <AccordionIcon color="green.700"  _dark={{ color: "green.100" }}/>
                           </AccordionButton>
                           <AccordionPanel pb={3} px={3}>
                               <VStack spacing={2} align="stretch">
                                   {accepted.map((request) => (
-                                      <Flex key={request.id} align="center" justify="space-between" bg="white" p={2} borderRadius="md" border="1px solid" borderColor="green.200">
+                                      <Flex key={request.id} align="center" justify="space-between" bg="white" _dark={{ bg: "gray.800", borderColor: "green.700" }} p={3} borderRadius="md" border="1px solid" borderColor="green.200">
                                           <Flex align="center" cursor="pointer" onClick={() => openProfile(request.users)}>
                                               <Avatar size="xs" name={`${request.users?.first_name || ''} ${request.users?.last_name || ''}`} src={request.users?.profile_picture} mr={2} />
-                                              <Text fontWeight="bold" fontSize="sm" color="gray.700">
+                                              <Text fontWeight="bold" fontSize="sm" >
                                                   {request.users?.first_name || 'Unknown'} {request.users?.last_name || ''}
                                               </Text>
                                           </Flex>
-                                          <HStack spacing={1}>
+                                          <Flex wrap="wrap" gap={2} w={{ base: "full", sm: "auto" }}>
                                             <Button size="xs" colorScheme="green" onClick={() => handlePickupStatus(trip.id, request.id, 'picked_up')}>
-                                              Passenger is here
+                                              Hopped In
                                              </Button>
                                             <Button size="xs" colorScheme="red" variant="outline" onClick={() => handlePickupStatus(trip.id, request.id, 'no_show')}>
                                               No-show
-                                            </Button> 
+                                            </Button>
                                             <Button size="xs" colorScheme="red" variant="ghost" onClick={() => handleKickRider(trip.id, request.id)}>
                                               Remove
                                             </Button>
-                                          </HStack>
+                                          </Flex>
                                       </Flex>
                                   ))}
                               </VStack>
@@ -328,20 +328,20 @@ function DriverRequests() {
                 )}
 
                 {/* pending requests list */}
-                <Text fontSize="xs" fontWeight="bold" textTransform="uppercase" letterSpacing="wide" color="gray.500" mb={3}>
+                <Text fontSize="xs" fontWeight="bold" textTransform="uppercase" letterSpacing="wide" mb={3}>
                   Pending Requests
                 </Text>
                 
                 {pending.length === 0 && (
-                  <Text color="gray.400" fontSize="sm" fontStyle="italic">No new requests.</Text>
+                  <Text fontSize="sm" fontStyle="italic">No new requests.</Text>
                 )}
 
                 <VStack spacing={2} align="stretch">
                   {pending.map((request) => (
-                    <Flex key={request.id} align="center" justify="space-between" bg="gray.50" p={2} borderRadius="md" border="1px solid" borderColor="gray.100">
+                    <Flex key={request.id} align="center" justify="space-between" bg="gray.50" _dark={{ bg: "gray.700", borderColor: "gray.600" }} p={2} borderRadius="md" border="1px solid" borderColor="gray.100">
                      <Flex align="center" cursor="pointer" onClick={() => openProfile(request.users)}>
                         <Avatar size="xs" name={`${request.users?.first_name || ''} ${request.users?.last_name || ''}`} src={request.users?.profile_picture} mr={3} />
-                        <Text fontWeight="bold" fontSize="sm" color="gray.700">
+                        <Text fontWeight="bold" fontSize="sm" >
                           {request.users?.first_name || 'Unknown'} {request.users?.last_name || ''}
                         </Text>
                       </Flex>
@@ -364,7 +364,7 @@ function DriverRequests() {
       <Drawer placement="bottom" onClose={onClose} isOpen={isOpen} size="md">
         <DrawerOverlay />
         <DrawerContent borderTopRadius="2xl" h="80vh">
-          <DrawerCloseButton zIndex={20} bg="white" borderRadius="full"/>
+          <DrawerCloseButton zIndex={20} bg="white" _dark={{ bg: "gray.800" }}   borderRadius="full"/>
           <DrawerBody p={0} display="flex" flexDir="column">
 
             {activeTripChat && (
