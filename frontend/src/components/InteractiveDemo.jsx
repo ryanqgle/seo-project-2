@@ -282,14 +282,22 @@ const viewFeatureMap = [
   "Make introductions and share excitement using real-time, in-app group chat!"
 ]
 
-export default function InteractiveDemo() {
+export default function InteractiveDemo({ compact = false }) {
   const [viewIdx, setViewIdx] = useState(0)
+  const outerPy = compact ? 4 : 10
+  const highlightP = compact ? 4 : 6
+  const highlightMb = compact ? 5 : 8
+  const carouselMb = compact ? 5 : 8
+  const featureFontSize = compact ? 'md' : 'lg'
+  const labelFontSize = compact ? 'md' : 'lg'
+  const arrowSize = compact ? 'md' : 'lg'
+  const arrowIconSize = compact ? 6 : 8
 
   const handleNext = () => setViewIdx((prev) => (prev + 1) % demoViews.length)
   const handlePrev = () => setViewIdx((prev) => (prev - 1 + demoViews.length) % demoViews.length)
 
   return (
-    <Box maxW="5xl" mx="auto" py={10} px={4} textAlign="center">
+    <Box maxW="4xl" mx="auto" py={outerPy} px={3} textAlign="center">
       
       {/* feauture highlight box */}
       <Box 
@@ -297,25 +305,25 @@ export default function InteractiveDemo() {
         border="1px solid" borderColor="gray.300"
         borderRadius="2xl"
         boxShadow="sm"
-        p={6} mb={8} mx="auto" maxW="2xl"
-        minH="80px"
+        p={highlightP} mb={highlightMb} mx="auto" maxW="xl"
+        minH={compact ? '56px' : '80px'}
         display="flex" alignItems="center" justifyContent="center"
       >
-        <Text fontSize="lg" fontWeight="semibold" color="black" _dark={{ color: "white" }}>
+        <Text fontSize={featureFontSize} fontWeight="semibold" color="black" _dark={{ color: "white" }}>
           {viewFeatureMap[viewIdx]}
         </Text>
       </Box>
 
       {/* carousel */}
-      <Flex align="center" justify="center" gap={{ base: 2, md: 8 }} mb={8}>
+      <Flex align="center" justify="center" gap={{ base: 2, md: 5 }} mb={carouselMb}>
         <IconButton 
-          icon={<ChevronLeftIcon boxSize={8} />} 
+          icon={<ChevronLeftIcon boxSize={arrowIconSize} />} 
           onClick={handlePrev} 
           variant="ghost" 
           color="black" _dark={{ color: "white" }}
           _hover={{ bg: "gray.100", _dark: { bg: "whiteAlpha.200" } }}
           isRound
-          size="lg"
+          size={arrowSize}
           aria-label="Previous"
         />
         
@@ -324,13 +332,13 @@ export default function InteractiveDemo() {
         </Box>
         
         <IconButton 
-          icon={<ChevronRightIcon boxSize={8} />} 
+          icon={<ChevronRightIcon boxSize={arrowIconSize} />} 
           onClick={handleNext} 
           variant="ghost" 
           color="black" _dark={{ color: "white" }}
           _hover={{ bg: "gray.100", _dark: { bg: "whiteAlpha.200" } }}
           isRound
-          size="lg"
+          size={arrowSize}
           aria-label="Next"
         />
       </Flex>
@@ -341,7 +349,7 @@ export default function InteractiveDemo() {
           <Circle key={idx} size={idx === viewIdx ? "10px" : "6px"} bg={idx === viewIdx ? "black" : "gray.300"} _dark={{ bg: idx === viewIdx ? "white" : "gray.600" }} transition="all 0.2s" />
         ))}
       </HStack>
-      <Text mt={4} color="gray.600" _dark={{ color: "gray.400" }} fontWeight="bold" fontSize="lg">
+      <Text mt={compact ? 2 : 4} color="gray.600" _dark={{ color: "gray.400" }} fontWeight={labelFontSize} fontSize={labelFontSize}>
         {demoViews[viewIdx].label}
       </Text>
 
