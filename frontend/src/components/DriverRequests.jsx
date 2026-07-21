@@ -336,7 +336,7 @@ function DriverRequests() {
                           <AccordionButton _hover={{ bg: "green.100", _dark: { bg: "green.800" } }} borderRadius="md" px={3} py={2}>
                           <Box flex="1" textAlign="left">
                               <Text fontSize="sm" fontWeight="bold" color="green.700" _dark={{ color: "green.100" }}>
-                                  Accepted Riders ({accepted.length}/{trip.available_seats || '?'} Seats)
+                                  Accepted Riders ({accepted.length}/{accepted.length + (trip.available_seats || 0)} Seats)
                               </Text>
                           </Box>
                           <AccordionIcon color="green.700"  _dark={{ color: "green.100" }}/>

@@ -430,7 +430,7 @@ function TripsFeed() {
                     src={trip.users?.profile_picture}
                     mr={3}
                   />
-                  <Text fontWeight="bold" color="gray.700">
+                  <Text fontWeight="bold">
                     Driver: {trip.users?.first_name || 'Unknown'} {trip.users?.last_name || 'Driver'}
                   </Text>
                 </Flex>
