@@ -14,7 +14,7 @@ def get_trips():
     """Return open trips as JSON for the frontend feed, soonest departure first."""
     try:
         result = supabase.table('trips').select('*, users(first_name, last_name, profile_picture, role, school)') \
-            .eq('status', 'open') \
+            .in_('status', ['open', 'full']) \
             .order('departure_time', desc=False) \
             .execute()
         return jsonify(result.data)

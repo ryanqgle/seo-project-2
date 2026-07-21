@@ -299,7 +299,7 @@ function DriverRequests() {
           const tripReqs = requestsByTrip[trip.id] || []
           const pending = tripReqs.filter(r => r.status === 'pending')
           const awaitingPayment = tripReqs.filter(r => r.status === 'awaiting_payment')
-          const accepted = tripReqs.filter(r => r.status === 'accepted')
+          const accepted = tripReqs.filter(r => r.status === 'accepted' || r.status === 'picked_up')
 
           return (
             <Card key={trip.id} variant="outline" boxShadow="sm" borderRadius="xl" >
@@ -336,7 +336,7 @@ function DriverRequests() {
                           <AccordionButton _hover={{ bg: "green.100", _dark: { bg: "green.800" } }} borderRadius="md" px={3} py={2}>
                           <Box flex="1" textAlign="left">
                               <Text fontSize="sm" fontWeight="bold" color="green.700" _dark={{ color: "green.100" }}>
-                                  Accepted Riders ({accepted.length}/{trip.available_seats || '?'} Seats)
+                                  Accepted Riders ({accepted.length}/{accepted.length + (trip.available_seats || 0)} Seats)
                               </Text>
                           </Box>
                           <AccordionIcon color="green.700"  _dark={{ color: "green.100" }}/>
@@ -353,7 +353,7 @@ function DriverRequests() {
                                           </Flex>
                                           <Flex wrap="wrap" gap={2} w={{ base: "full", sm: "auto" }}>
                                             <Button size="xs" colorScheme="green" onClick={() => handlePickupStatus(trip.id, request.id, 'picked_up')}>
-                                              Hopped In
+                                              {request.status === 'picked_up' ? 'In Car' : 'Hopped In'}
                                              </Button>
                                             <Button size="xs" colorScheme="red" variant="outline" onClick={() => handlePickupStatus(trip.id, request.id, 'no_show')}>
                                               No-show
@@ -428,7 +428,7 @@ function DriverRequests() {
                         </Text>
                       </Flex>
                       <HStack spacing={1}>
-                          <Button size="xs" colorScheme="green" isDisabled={!payoutsReady} onClick={() => handleDecision(trip.id, request.id, 'accepted')}>Accept</Button>
+                          <Button size="xs" colorScheme="green" isDisabled={!payoutsReady || trip.available_seats == 0} onClick={() => handleDecision(trip.id, request.id, 'accepted')}>Accept</Button>
                           <Button size="xs" colorScheme="red" variant="ghost" onClick={() => handleDecision(trip.id, request.id, 'declined')}>Decline</Button>
                       </HStack>
                     </Flex>

@@ -97,6 +97,7 @@ function TripsFeed() {
   // pickup location they've chosen on the map ({ lat, lng, address }).
   const [pickupTrip, setPickupTrip] = useState(null)
   const [pickupLocation, setPickupLocation] = useState(null)
+  const [pendingTripIds, setPendingTripIds] = useState(() => new Set())
 
   // Controls the driver-profile pop-up (open/close).
   const { isOpen, onOpen, onClose } = useDisclosure()
@@ -179,6 +180,7 @@ function TripsFeed() {
         duration: 3000,
         isClosable: true,
       })
+      setPendingTripIds(prev => new Set(prev).add(pickupTrip.id))
       pickup.onClose()
     } catch (err) {
       toast({
@@ -237,6 +239,9 @@ function TripsFeed() {
         if (!active || !Array.isArray(data)) return
         const accepted = data.filter((r) => r.status === 'accepted').map((r) => r.trip_id)
         setAcceptedTripIds(new Set(accepted))
+
+        const pending = data.filter((r) => r.status === 'pending').map((r) => r.trip_id)
+        setPendingTripIds(new Set(pending))
       })
       .catch(() => {})
 
@@ -425,7 +430,7 @@ function TripsFeed() {
                     src={trip.users?.profile_picture}
                     mr={3}
                   />
-                  <Text fontWeight="bold" color="gray.700">
+                  <Text fontWeight="bold">
                     Driver: {trip.users?.first_name || 'Unknown'} {trip.users?.last_name || 'Driver'}
                   </Text>
                 </Flex>
@@ -478,6 +483,16 @@ function TripsFeed() {
                   >
                     View Route
                   </RouteModalButton>
+                ): pendingTripIds.has(trip.id) ? (
+                  <Button
+                    width="x"
+                    variant="solid"
+                    borderRadius="full"
+                    size="sm"
+                    isDisabled
+                  >
+                    Request Pending
+                  </Button>
                 ) : (
                   <Button
                   width="x"
@@ -486,7 +501,7 @@ function TripsFeed() {
                   size="sm"
                   onClick={() => openPickup(trip)}
                   >
-                    Request to Join
+                    {trip.available_seats <= 0 ? 'Join Waitlist' : 'Request to Join'}
                   </Button>
                 )}
 
