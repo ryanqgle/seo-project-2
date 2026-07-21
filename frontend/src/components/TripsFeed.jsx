@@ -24,7 +24,7 @@ import {
   useDisclosure,
   useToast
 } from '@chakra-ui/react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useAuth } from '../auth.jsx'
 import { supabase } from '../dbConnection.js'
 import { apiUrl } from '../api'
@@ -68,7 +68,8 @@ function TripsFeed() {
 
   // Text the rider has typed to search trips (case-insensitive). Matches against
   // the trip title, driver name, and destination.
-  const [searchQuery, setSearchQuery] = useState('')
+  const [searchParams] = useSearchParams()
+  const [searchQuery, setSearchQuery] = useState(() => searchParams.get('search') || '')
 
   // Which trip category the rider is filtering by. 'all' shows every category.
   const [categoryFilter, setCategoryFilter] = useState('all')
