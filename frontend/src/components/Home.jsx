@@ -235,7 +235,17 @@ export default function Home({ onLogin }) {
                 <Text color={mutedText} mb={4}>
                   Browse available trips and request a seat
                 </Text>
-                <Button size="sm" variant="ghost" onClick={handleFindRide}>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  borderRadius="full"
+                  bg={useColorModeValue('purple.50', 'purple.900')}
+                  color={useColorModeValue('purple.700', 'purple.100')}
+                  _hover={{
+                    bg: useColorModeValue('purple.100', 'purple.800'),
+                  }}
+                  onClick={handleFindRide}
+                >
                   Find rides
                 </Button>
               </CardBody>
@@ -250,7 +260,17 @@ export default function Home({ onLogin }) {
                 <Text color={mutedText} mb={4}>
                   Post a trip and help other students get there
                 </Text>
-                <Button size="sm" variant="ghost" onClick={handleOfferRide}>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  borderRadius="full"
+                  bg={useColorModeValue('purple.50', 'purple.900')}
+                  color={useColorModeValue('purple.700', 'purple.100')}
+                  _hover={{
+                    bg: useColorModeValue('purple.100', 'purple.800'),
+                  }}
+                  onClick={handleOfferRide}
+                >
                   Create ride
                 </Button>
               </CardBody>
@@ -265,13 +285,19 @@ export default function Home({ onLogin }) {
                 <Text color={mutedText} mb={4}>
                   Coordinate pickup details and pay securely after approval
                 </Text>
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  onClick={handleViewActivity}
-                >
-                  View activity
-                </Button>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    borderRadius="full"
+                    bg={useColorModeValue('purple.50', 'purple.900')}
+                    color={useColorModeValue('purple.700', 'purple.100')}
+                    _hover={{
+                      bg: useColorModeValue('purple.100', 'purple.800'),
+                    }}
+                    onClick={handleViewActivity}
+                  >
+                    Find rides
+                  </Button>
               </CardBody>
             </Card>
           </SimpleGrid>

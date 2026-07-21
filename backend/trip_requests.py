@@ -68,19 +68,33 @@ def create_request(trip_id):
 
         active_statuses = ['pending', 'awaiting_payment', 'accepted', 'picked_up']
 
-        existing_active_request = (
+        existing_active_requests = (
             supabase
             .table('trip_requests')
-            .select('id, status, trip_id')
+            .select('id, status, trips(id, title, departure_time)')
             .eq('passenger_id', user.id)
             .in_('status', active_statuses)
             .execute()
         )
 
-        if existing_active_request.data:
-            return jsonify({
-                'error': 'You already have an active ride request. Finish or cancel it before requesting another ride.'
-            }), 400
+        new_trip_time = trip.get('departure_time')
+        
+        for existing_request in existing_active_requests.data or []:
+            existing_trip = existing_request.get('trips')
+            if not existing_trip:
+                continue
+            
+            if existing_trip.get('id') == trip_id:
+                return jsonify({
+                    'error': 'You already have a request for this ride'
+                }), 400
+                
+            existing_trip_time = existing_trip.get('departure_time')
+            
+            if existing_trip_time and new_trip_time and existing_trip_time == new_trip_time:
+                return jsonify({
+                    'error': 'You already have a ride at this departure time'
+                }), 400
 
         data = request.json or {}
         pickup_lat = data.get('pickup_lat')

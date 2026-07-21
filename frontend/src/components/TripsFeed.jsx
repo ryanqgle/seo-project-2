@@ -488,6 +488,15 @@ function TripsFeed() {
                   >
                     View Route
                   </RouteModalButton>
+                ) : role === 'driver' ? (
+                  <RouteModalButton
+                    tripId={trip.id}
+                    variant="solid"
+                    borderRadius="full"
+                    size="sm"
+                  >
+                    View Route
+                  </RouteModalButton>
                 ) : acceptedTripIds.has(trip.id) ? (
                   <RouteModalButton
                     tripId={trip.id}

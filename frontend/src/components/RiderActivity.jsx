@@ -101,6 +101,8 @@ export default function RiderActivity() {
   const upcomingTrips = requests.filter(req => req.status === 'accepted')
   const pendingTrips = requests.filter(req => req.status === 'pending')
   const awaitingPaymentTrips = requests.filter(req => req.status === 'awaiting_payment')
+  const passengerCardBg = 'blue.50'
+  const passengerCardBorder = 'blue.100'
 
   return (
     <Box py={6} px={4} maxW="full">
@@ -112,7 +114,7 @@ export default function RiderActivity() {
       ) : (
         <SimpleGrid columns={{ base: 1, md: 2, lg: 3 }} spacing={5} w="full" mb={8}>
           {upcomingTrips.map(req => (
-            <Card key={req.id} variant="outline" boxShadow="sm" borderRadius="xl" border="1px solid" borderColor="gray.100">
+            <Card key={req.id} variant="outline" bg={passengerCardBg} borderRadius="xl" border="1px solid" broderColor={passengerCardBorder}>
               <CardBody>
                 <Flex justify="space-between" align="flex-start" mb={3}>
                   <Box>
@@ -178,7 +180,7 @@ export default function RiderActivity() {
                     variant="outline"
                     borderRadius="full"
                   >
-                    Route
+                    View Route
                   </RouteModalButton>
 
                   <Button
@@ -206,7 +208,7 @@ export default function RiderActivity() {
       ) : (
         <SimpleGrid columns={{ base: 1, md: 2, lg: 3 }} spacing={5} w="full" mb={8}>
           {awaitingPaymentTrips.map(req => (
-            <Card key={req.id} variant="outline" bg="blue.50" borderRadius="xl" border="1px solid" borderColor="blue.100">
+            <Card key={req.id} variant="outline" bg={passengerCardBg} borderRadius="xl" border="1px solid" borderColor={passengerCardBorder}>
               <CardBody>
                 <Flex justify="space-between" align="flex-start" mb={3}>
                   <Box>
@@ -268,7 +270,7 @@ export default function RiderActivity() {
       ) : (
         <SimpleGrid columns={{ base: 1, md: 2, lg: 3 }} spacing={5} w="full">
           {pendingTrips.map(req => (
-            <Card key={req.id} variant="outline" bg="gray.50" borderRadius="xl" border="1px solid" borderColor="gray.100">
+            <Card key={req.id} variant="outline" bg={passengerCardBg} borderRadius="xl" border="1px solid" borderColor={passengerCardBorder}>
               <CardBody>
                 <Flex justify="space-between" align="flex-start" mb={3}>
                   <Box>

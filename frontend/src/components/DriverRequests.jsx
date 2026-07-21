@@ -273,9 +273,9 @@ function DriverRequests() {
         <Alert status="warning" mb={6} borderRadius="md">
           <AlertIcon />
           <Box>
-            <AlertTitle>Set up payouts before accepting riders.</AlertTitle>
+            <AlertTitle>Set up payouts before accepting riders</AlertTitle>
             <AlertDescription>
-              Riders cannot pay you until Stripe payouts are fully enabled.
+              Riders cannot pay you until Stripe payouts are fully enabled
             </AlertDescription>
           </Box>
         </Alert>
@@ -462,6 +462,7 @@ function DriverRequests() {
                  <TripChat
                     tripId={activeTripChat}
                     currUserId={trips.find(t => t.id === activeTripChat)?.driver_id}
+                    tripTitle={trips.find(t => t.id === activeTripChat)?.title}
                  />
               </Box>
             )}

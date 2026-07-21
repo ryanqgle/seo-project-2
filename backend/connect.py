@@ -57,8 +57,8 @@ def create_connect_onboarding_link():
         account_link = client.v1.account_links.create(
             params={
                 'account': stripe_account_id,
-                'refresh_url': f'{FRONTEND_URL}/profile',
-                'return_url': f'{FRONTEND_URL}/profile',
+                'refresh_url': f'{FRONTEND_URL}/dashboard',
+                'return_url': f'{FRONTEND_URL}/dashboard',
                 'type': 'account_onboarding',
             }
         )
