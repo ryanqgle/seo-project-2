@@ -7,12 +7,27 @@ import {
     AvatarGroup, Tooltip, useDisclosure, Modal, ModalOverlay,
     ModalContent, ModalHeader, ModalCloseButton, ModalBody, Heading, Badge
 } from '@chakra-ui/react'
-import { ArrowUpIcon } from '@chakra-ui/icons'
+import { ArrowUpIcon, CloseIcon } from '@chakra-ui/icons'
 
 {/*
  A real time chat component for a specific trip. It handles fetching message history,
  subscribing to live database updates via Supabase, and sending new messages.
  */}
+
+ // helper function to handle JSON-based reply parsing without backend changes
+const parseMessage = (rawText) => {
+    try {
+        const parsed = JSON.parse(rawText)
+        if (parsed && parsed.isReply) {
+            return parsed
+        }
+    } catch (e) {
+
+        // if it's not JSON, it's just a standard text message
+    }
+    return { text: rawText, isReply: false }
+}
+
 
 function TripChat({tripId, currUserId}){
     const { token } = useAuth()
@@ -20,6 +35,8 @@ function TripChat({tripId, currUserId}){
     const [newMessage, setNewMessage] = useState("")
     const [tripTitle, setTripTitle] = useState("Loading...")
     const [participants, setParticipants] = useState([])
+    const [replyingTo, setReplyingTo] = useState(null)
+    const [hoveredMsgId, setHoveredMsgId] = useState(null)
 
     const messagesEndRef = useRef(null) // used to auto scroll the chat view to the bottom when new messages arrive
     const { isOpen, onOpen, onClose } = useDisclosure()
@@ -63,7 +80,7 @@ function TripChat({tripId, currUserId}){
         const requests = await requestsRes.json()
 
         const paidRiders = requests
-            .filter((request) => ['accepted', 'picked_up'].includes(request.status))
+            .filter((request) => ['accepted', 'picked_up', 'awaiting_payment'].includes(request.status))
             .map((request) => ({
             id: request.users?.id || request.passenger_id,
             ...request.users,
@@ -171,6 +188,18 @@ function TripChat({tripId, currUserId}){
 
     const handleSendMessage = async (e) => {
         e.preventDefault()
+        if (!newMessage.trim()) return
+
+        let finalMessage = newMessage
+        if (replyingTo) {
+            const parsedReplyingTo = parseMessage(replyingTo.text)
+            finalMessage = JSON.stringify({
+                isReply: true,
+                replyName: replyingTo.users?.first_name || 'Someone',
+                replyText: parsedReplyingTo.text,
+                text: newMessage
+            })
+        }
 
         const response = await fetch(apiUrl(`/api/trips/${tripId}/messages`), {
         method: 'POST',
@@ -178,10 +207,11 @@ function TripChat({tripId, currUserId}){
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${token}`
         },
-        body: JSON.stringify({text: newMessage})
+        body: JSON.stringify({text: finalMessage})
         })
 
-    setNewMessage('')
+        setNewMessage('')
+        setReplyingTo(null)
     }
 
     return(
@@ -226,6 +256,8 @@ function TripChat({tripId, currUserId}){
 
                         const showDateDivider = index === 0 || !isSameDay(msg.created_at, messages[index - 1].created_at)
 
+                        const { text, isReply, replyName, replyText } = parseMessage(msg.text)
+
                         return (
                             <React.Fragment key={msg.id || index}>
 
@@ -243,7 +275,20 @@ function TripChat({tripId, currUserId}){
                                         </Badge>
                                     </Flex>
                                 )}
-                            <Flex key={msg.id || index} w="full" justify={isMe ? "flex-end" : "flex-start"}>
+                            <Flex key={msg.id || index}
+                                  w="full"
+                                  justify={isMe ? "flex-end" : "flex-start"}
+                                  onMouseEnter={() => setHoveredMsgId(msg.id)}
+                                  onMouseLeave={() => setHoveredMsgId(null)}
+                                  align="center"
+                                  gap={2}
+                            >
+
+                                {isMe && hoveredMsgId === msg.id && (
+                                        <Text fontSize="xs" color="gray.400" cursor="pointer" _hover={{ color: "blue.500" }} onClick={() => setReplyingTo(msg)}>
+                                            Reply
+                                        </Text>
+                                    )}
                                 {!isMe && (
                                     <Avatar
                                         size="sm" 
@@ -273,7 +318,26 @@ function TripChat({tripId, currUserId}){
                                         borderBottomLeftRadius={!isMe ? "sm" : "2xl"}
                                         boxShadow="sm"
                                     >
-                                        <Text fontSize="md">{msg.text}</Text>
+                                        {/* render quoted block if it's a reply */}
+                                        {isReply && (
+                                                <Box 
+                                                    bg="blackAlpha.200" 
+                                                    _dark={{ bg: "whiteAlpha.200" }} 
+                                                    p={2} 
+                                                    borderRadius="md" 
+                                                    mb={2} 
+                                                    borderLeft="3px solid" 
+                                                    borderColor={isMe ? "white" : "blue.500"}
+                                                >
+                                                    <Text fontSize="xs" fontWeight="bold" color={isMe ? "white" : "blue.500"} _dark={{ color: isMe ? "white" : "blue.300" }}>
+                                                        {replyName}
+                                                    </Text>
+                                                    <Text fontSize="xs" noOfLines={1} color={isMe ? "gray.200" : "gray.600"} _dark={{ color: "gray.300" }}>
+                                                        {replyText}
+                                                    </Text>
+                                                </Box>
+                                            )}
+                                        <Text fontSize="md">{text}</Text>
                                     </Box>
                                     
                                     <Text 
@@ -287,6 +351,12 @@ function TripChat({tripId, currUserId}){
                                         {formatTime(msg.created_at)}
                                     </Text>
                                 </Box>
+                                {/* reply button (right side for other users) */}
+                                    {!isMe && hoveredMsgId === msg.id && (
+                                        <Text fontSize="xs" color="gray.400" cursor="pointer" _hover={{ color: "blue.500" }} onClick={() => setReplyingTo(msg)}>
+                                            Reply
+                                        </Text>
+                                    )}
                             </Flex>
                         </React.Fragment>
                         )
@@ -298,6 +368,28 @@ function TripChat({tripId, currUserId}){
 
             {/* message input box */}
             <Box p={3} borderTop="1px solid" borderColor="gray.100" bg="white">
+
+                {/* banner showing who you are replying to */}
+                {replyingTo && (
+                    <Flex bg="gray.50" _dark={{ bg: "gray.700" }} p={2} borderRadius="md" mb={2} justify="space-between" align="center" borderLeft="4px solid" borderColor="blue.500">
+                        <Box flex="1" mr={2} overflow="hidden">
+                            <Text fontSize="xs" fontWeight="bold" color="blue.500" _dark={{ color: "blue.300" }}>
+                                Replying to {replyingTo.users?.first_name || 'Someone'}
+                            </Text>
+                            <Text fontSize="xs" color="gray.600" _dark={{ color: "gray.300" }} noOfLines={1}>
+                                {parseMessage(replyingTo.text).text}
+                            </Text>
+                        </Box>
+                        <IconButton 
+                            size="xs" 
+                            icon={<CloseIcon />} 
+                            variant="ghost" 
+                            onClick={() => setReplyingTo(null)} 
+                            aria-label="Cancel Reply" 
+                        />
+                    </Flex>
+                )}
+
                 <form onSubmit={handleSendMessage}>
                     <Flex gap={2}>
                         <Input
