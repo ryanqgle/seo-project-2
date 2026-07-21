@@ -256,6 +256,7 @@ function DriverRequests() {
         {trips.map((trip) => {
           const tripReqs = requestsByTrip[trip.id] || []
           const pending = tripReqs.filter(r => r.status === 'pending')
+          const awaitingPayment = tripReqs.filter(r => r.status === 'awaiting_payment')
           const accepted = tripReqs.filter(r => r.status === 'accepted')
 
           return (
@@ -325,6 +326,45 @@ function DriverRequests() {
                           </AccordionPanel>
                       </AccordionItem>
                   </Accordion>
+                )}
+
+                {awaitingPayment.length > 0 && (
+                  <Box mb={4} bg="yellow.50" borderRadius="md" p={3} border="1px solid" borderColor="yellow.200">
+                    <Text fontSize="sm" fontWeight="bold" color="yellow.700" mb={2}>
+                      Pending Payments ({awaitingPayment.length})
+                    </Text>
+
+                    <VStack spacing={2} align="stretch">
+                      {awaitingPayment.map((request) => (
+                        <Flex
+                          key={request.id}
+                          align="center"
+                          justify="space-between"
+                          bg="white"
+                          p={2}
+                          borderRadius="md"
+                          border="1px solid"
+                          borderColor="yellow.200"
+                        >
+                          <Flex align="center" cursor="pointer" onClick={() => openProfile(request.users)}>
+                            <Avatar
+                              size="xs"
+                              name={`${request.users?.first_name || ''} ${request.users?.last_name || ''}`}
+                              src={request.users?.profile_picture}
+                              mr={2}
+                            />
+                            <Text fontWeight="bold" fontSize="sm" color="gray.700">
+                              {request.users?.first_name || 'Unknown'} {request.users?.last_name || ''}
+                            </Text>
+                          </Flex>
+
+                          <Badge colorScheme="yellow">
+                            Awaiting payment
+                          </Badge>
+                        </Flex>
+                      ))}
+                    </VStack>
+                  </Box>
                 )}
 
                 {/* pending requests list */}
