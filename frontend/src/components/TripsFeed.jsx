@@ -635,12 +635,6 @@ function TripsFeed() {
             </Text>
             {pickupRouteStops.length > 0 && (
               <HStack mb={3} spacing={2} fontSize="sm" color="gray.500" flexWrap="wrap">
-                <Text>
-                  The line shows the driver's route (
-                  <Text as="span" color="green.600" fontWeight="bold">A</Text> start →{' '}
-                  <Text as="span" color="red.600" fontWeight="bold">B</Text> destination). Drop
-                  your pin where you'd like to be picked up along it.
-                </Text>
                 {pickupRoute?.distance_meters != null && (
                   <Text fontWeight="bold" color="gray.600">
                     {(pickupRoute.distance_meters / 1609.34).toFixed(1)} mi
