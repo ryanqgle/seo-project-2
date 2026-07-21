@@ -136,7 +136,6 @@ function Shell() {
 
       </Routes>
       </Box>
-      <Footer />
       </Box>
       {showLogin && <Login onClose={() => setShowLogin(false)} />}
     </ChakraProvider>
