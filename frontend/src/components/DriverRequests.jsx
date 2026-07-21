@@ -23,7 +23,15 @@ import {
   DrawerHeader,
   DrawerBody,
   useDisclosure,
-  Accordion, AccordionItem, AccordionButton, AccordionPanel, AccordionIcon
+  Accordion,
+  AccordionItem,
+  AccordionButton,
+  AccordionPanel,
+  AccordionIcon,
+  Alert,
+  AlertIcon,
+  AlertTitle,
+  AlertDescription
 } from '@chakra-ui/react'
 import TripChat from './TripChat'
 import UserProfileModal from './UserProfileModal.jsx'
@@ -42,6 +50,7 @@ function DriverRequests() {
   const { isOpen, onOpen, onClose } = useDisclosure()
   const [activeTripChat, setActiveTripChat] = useState(null)
   const [payoutsReady, setPayoutsReady] = useState(false)
+  const [payoutWarning, setPayoutWarning] = useState('')
 
   const { isOpen: isProfileOpen, onOpen: onProfileOpen, onClose: onProfileClose } = useDisclosure()
   const [selectedUser, setSelectedUser] = useState(null)
@@ -114,6 +123,13 @@ function DriverRequests() {
   // 'declined'. After the backend saves the decision, we update that one request
   // on screen so the change shows immediately without reloading the page.
   const handleDecision = async (tripId, requestId, status) => {
+    if (status === 'accepted' && !payoutsReady) {
+      setPayoutWarning('Please set up payouts before accepting riders. Riders cannot pay you until payouts are enabled')
+      return
+    }
+
+    setPayoutWarning('')
+
     const response = await supabase.auth.getSession()
     const session = response?.data?.session
 
@@ -128,7 +144,13 @@ function DriverRequests() {
         },
         body: JSON.stringify({ status })
       })
+
       const updated = await res.json()
+
+      if (!res.ok) {
+        setPayoutWarning(updated.error || 'Could not update request')
+        return
+      }
 
       setRequestsByTrip((prev) => ({
         ...prev,
@@ -136,6 +158,7 @@ function DriverRequests() {
       }))
     } catch (err) {
       console.error('Error updating request:', err)
+      setPayoutWarning('Something went wrong while updating the request')
     }
   }
 
@@ -245,6 +268,25 @@ function DriverRequests() {
       >
         {payoutsReady ? 'Payouts set up' : 'Set up payouts'}
       </Button>
+
+      {!payoutsReady && (
+        <Alert status="warning" mb={6} borderRadius="md">
+          <AlertIcon />
+          <Box>
+            <AlertTitle>Set up payouts before accepting riders.</AlertTitle>
+            <AlertDescription>
+              Riders cannot pay you until Stripe payouts are fully enabled.
+            </AlertDescription>
+          </Box>
+        </Alert>
+      )}
+
+      {payoutWarning && (
+        <Alert status="error" mb={6} borderRadius="md">
+          <AlertIcon />
+          <AlertDescription>{payoutWarning}</AlertDescription>
+        </Alert>
+      )}
 
       {trips.length === 0 && (
         <Text color="gray.500" fontSize="lg" textAlign="center" mt={10}>
@@ -386,7 +428,7 @@ function DriverRequests() {
                         </Text>
                       </Flex>
                       <HStack spacing={1}>
-                          <Button size="xs" colorScheme="green" onClick={() => handleDecision(trip.id, request.id, 'accepted')}>Accept</Button>
+                          <Button size="xs" colorScheme="green" isDisabled={!payoutsReady} onClick={() => handleDecision(trip.id, request.id, 'accepted')}>Accept</Button>
                           <Button size="xs" colorScheme="red" variant="ghost" onClick={() => handleDecision(trip.id, request.id, 'declined')}>Decline</Button>
                       </HStack>
                     </Flex>
