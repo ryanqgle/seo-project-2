@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { MapContainer, TileLayer, Marker, useMap, useMapEvents } from 'react-leaflet'
+import { MapContainer, TileLayer, Marker, Polyline, useMap, useMapEvents } from 'react-leaflet'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 import {
@@ -30,6 +30,44 @@ const PIN_ICON = L.icon({
   popupAnchor: [1, -34],
   shadowSize: [41, 41],
 })
+
+// Overlay route colors (used when the picker is given a trip route to display
+// behind the pin, so a rider can see where the trip goes).
+const ROUTE_COLOR = '#3182ce'
+const ORIGIN_COLOR = '#2f855a'
+const DEST_COLOR = '#c53030'
+
+// A small, non-draggable labeled dot marking a route endpoint. Built with a
+// divIcon so it doesn't collide with the draggable pin's image assets.
+function endpointIcon(label, bg) {
+  return L.divIcon({
+    className: '',
+    html: `<div style="background:${bg};color:#fff;width:22px;height:22px;border-radius:50%;
+      display:flex;align-items:center;justify-content:center;font-weight:700;font-size:11px;
+      border:2px solid #fff;box-shadow:0 0 3px rgba(0,0,0,.45)">${label}</div>`,
+    iconSize: [22, 22],
+    iconAnchor: [11, 11],
+  })
+}
+const ORIGIN_ICON = endpointIcon('A', ORIGIN_COLOR)
+const DEST_ICON = endpointIcon('B', DEST_COLOR)
+
+// Frames the map around the trip route the first time it's available, but only
+// while the user hasn't dropped their own pin yet — so it positions the view
+// helpfully without fighting the user once they start adjusting the pin.
+function FitRouteBounds({ points, active }) {
+  const map = useMap()
+  useEffect(() => {
+    if (!active || !points || points.length <= 1) return
+    const fit = () => map.fitBounds(points, { padding: [40, 40] })
+    fit()
+    // Inside a modal the map often measures before it reaches full size, so
+    // re-fit once it has settled (mirrors the picker's invalidateSize timers).
+    const timers = [200, 500].map((ms) => setTimeout(fit, ms))
+    return () => timers.forEach(clearTimeout)
+  }, [points, active, map])
+  return null
+}
 
 // Default map center when the picker opens with no prior location. Rice
 // University — a reasonable neutral starting view; the pin is what matters.
@@ -76,7 +114,15 @@ function Recenter({ target }) {
 //   initialValue { lat, lng, address } — where to place the pin on open (setting is optional)
 //   onChange(value) — called with { lat, lng, address } every time the pin moves
 //   height — map height in px (default 300)
-function LocationPicker({ initialValue = null, onChange, height = 300 }) {
+// optional road-following trip route drawn
+// behind the pin so the user can gauge where along it to place their pin
+function LocationPicker({
+  initialValue = null,
+  onChange,
+  height = 300,
+  routeGeometry = null,
+  routeStops = null,
+}) {
   const hasInitial = initialValue && initialValue.lat != null
   // The pin's current position (null until the user drops pin).
   const [pos, setPos] = useState(hasInitial ? { lat: initialValue.lat, lng: initialValue.lng } : null)
@@ -234,6 +280,14 @@ function LocationPicker({ initialValue = null, onChange, height = 300 }) {
     )
   }
 
+  const validStops = (routeStops || []).filter((s) => s?.lat != null && s?.lng != null)
+  const hasRoad = Array.isArray(routeGeometry) && routeGeometry.length > 1
+  const routeLine = hasRoad
+    ? routeGeometry
+    : validStops.length > 1
+      ? validStops.map((s) => [s.lat, s.lng])
+      : null
+
   return (
     <Box>
       <HStack mb={2} align="start">
@@ -332,6 +386,24 @@ function LocationPicker({ initialValue = null, onChange, height = 300 }) {
           />
           <ClickHandler onPick={handlePick} />
           <Recenter target={recenterTarget} />
+          <FitRouteBounds points={routeLine} active={!pos} />
+          {routeLine && (
+            <Polyline
+              positions={routeLine}
+              color={ROUTE_COLOR}
+              weight={5}
+              opacity={0.7}
+              dashArray={hasRoad ? undefined : '6 10'}
+            />
+          )}
+          {validStops.map((s, i) => (
+            <Marker
+              key={`route-endpoint-${i}`}
+              position={[s.lat, s.lng]}
+              icon={s.type === 'destination' ? DEST_ICON : ORIGIN_ICON}
+              interactive={false}
+            />
+          ))}
           {pos && (
             <Marker
               position={[pos.lat, pos.lng]}

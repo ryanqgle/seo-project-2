@@ -127,6 +127,44 @@ def get_trip_route(trip_id):
         return jsonify({'error': str(error)}), 500
 
 
+@trips_bp.route('/api/trips/<int:trip_id>/base-route', methods=['GET'])
+def get_trip_base_route(trip_id):
+    from app import get_authenticated_user
+
+    user = get_authenticated_user()
+    if not user:
+        return jsonify({'error': 'Unauthorized'}), 401
+
+    try:
+        trip_res = supabase.table('trips').select(
+            'origin, origin_lat, origin_lng, destination, destination_lat, destination_lng'
+        ).eq('id', trip_id).execute()
+        if not trip_res.data:
+            return jsonify({'error': 'Trip not found'}), 404
+        trip = trip_res.data[0]
+
+        if trip.get('origin_lat') is None or trip.get('destination_lat') is None:
+            return jsonify({'error': 'This trip has no origin/destination coordinates.'}), 400
+
+        start = (trip['origin_lat'], trip['origin_lng'])
+        end = (trip['destination_lat'], trip['destination_lng'])
+        route = route_geometry([start, end])
+
+        return jsonify({
+            'stops': [
+                {'type': 'origin', 'lat': start[0], 'lng': start[1], 'address': trip.get('origin')},
+                {'type': 'destination', 'lat': end[0], 'lng': end[1], 'address': trip.get('destination')},
+            ],
+            'geometry': route['geometry'],
+            'distance_meters': route['distance_meters'],
+            'duration_seconds': route['duration_seconds'],
+        })
+    except RoutingError as error:
+        return jsonify({'error': str(error)}), 502
+    except Exception as error:
+        return jsonify({'error': str(error)}), 500
+
+
 @trips_bp.route('/trips/new', methods=['GET', 'POST'])
 def create_trip():
     if 'user_id' not in session:

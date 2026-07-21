@@ -98,6 +98,7 @@ function TripsFeed() {
   // pickup location they've chosen on the map ({ lat, lng, address }).
   const [pickupTrip, setPickupTrip] = useState(null)
   const [pickupLocation, setPickupLocation] = useState(null)
+  const [pickupRoute, setPickupRoute] = useState(null)
   const [pendingTripIds, setPendingTripIds] = useState(() => new Set())
 
   // Controls the driver-profile pop-up (open/close).
@@ -134,8 +135,40 @@ function TripsFeed() {
     }
     setPickupTrip(trip)
     setPickupLocation(null)
+    setPickupRoute(null)
     pickup.onOpen()
+
+    // Load the trip's origin→destination route so the rider can see where the
+    // trip goes while choosing a pickup point.
+    try {
+      const res = await fetch(apiUrl(`/api/trips/${trip.id}/base-route`), {
+        headers: { Authorization: `Bearer ${session.access_token}` },
+      })
+      if (res.ok) setPickupRoute(await res.json())
+    } catch {
+      // Ignore — the straight-line fallback still gives spatial context.
+    }
   }
+
+  // Origin/destination endpoints for the pickup map, taken straight from the
+  // trip so they're available immediately (before the road route loads).
+  const pickupRouteStops =
+    pickupTrip && pickupTrip.origin_lat != null && pickupTrip.destination_lat != null
+      ? [
+          {
+            type: 'origin',
+            lat: pickupTrip.origin_lat,
+            lng: pickupTrip.origin_lng,
+            address: pickupTrip.origin,
+          },
+          {
+            type: 'destination',
+            lat: pickupTrip.destination_lat,
+            lng: pickupTrip.destination_lng,
+            address: pickupTrip.destination,
+          },
+        ]
+      : []
 
   // Sends the join request once the rider has chosen a pickup location. Includes
   // the pickup coordinates + address so the driver can route to them. Shows a
@@ -596,11 +629,33 @@ function TripsFeed() {
           <ModalHeader>Set your pickup location</ModalHeader>
           <ModalCloseButton />
           <ModalBody pb={6}>
-            <Text mb={3}>
+            <Text mb={2}>
               Where should {pickupTrip?.users?.first_name || 'the driver'} pick you up
               {pickupTrip?.title ? ` for “${pickupTrip.title}”` : ''}?
             </Text>
-            <LocationPicker onChange={setPickupLocation} height={320} />
+            {pickupRouteStops.length > 0 && (
+              <HStack mb={3} spacing={2} fontSize="sm" color="gray.500" flexWrap="wrap">
+                <Text>
+                  The line shows the driver's route (
+                  <Text as="span" color="green.600" fontWeight="bold">A</Text> start →{' '}
+                  <Text as="span" color="red.600" fontWeight="bold">B</Text> destination). Drop
+                  your pin where you'd like to be picked up along it.
+                </Text>
+                {pickupRoute?.distance_meters != null && (
+                  <Text fontWeight="bold" color="gray.600">
+                    {(pickupRoute.distance_meters / 1609.34).toFixed(1)} mi
+                    {pickupRoute.duration_seconds != null &&
+                      ` • ~${Math.round(pickupRoute.duration_seconds / 60)} min drive`}
+                  </Text>
+                )}
+              </HStack>
+            )}
+            <LocationPicker
+              onChange={setPickupLocation}
+              height={320}
+              routeGeometry={pickupRoute?.geometry}
+              routeStops={pickupRouteStops}
+            />
             <Button
               mt={4}
               w="full"
