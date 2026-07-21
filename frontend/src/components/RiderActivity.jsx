@@ -27,6 +27,7 @@ import {
 import { useAuth } from '../auth.jsx'
 import { apiUrl } from '../api'
 import TripChat from './TripChat.jsx'
+import RouteModalButton from './RouteModalButton.jsx'
 
 {/*
     This component acts as the Activity tab for users who are riders (passengers).
@@ -95,30 +96,40 @@ export default function RiderActivity() {
                 <Flex justify="space-between" align="flex-start" mb={2}>
                   <Box>
                      <Heading size="sm" mb={1}>{req.trips.title}</Heading>
-                     <Text color="blue.600" fontWeight="bold" fontSize="sm">
-                       → To {req.trips.destination}
-                     </Text>
                   </Box>
-                  <HStack>
-                    <Button
+                    <HStack>
+                      <Button
                         size="sm"
                         colorScheme="blue"
                         borderRadius="full"
                         onClick={() => {
-                            setActiveTripChat(req.trips.id)
-                            onOpen()
+                          setActiveTripChat(req.trips.id)
+                          onOpen()
                         }}
-                    >
+                      >
                         Chat
-                    </Button>
-                    <Button size="sm"
-                      colorScheme="red"
-                      variant="outline"
-                      borderRadius="full"
-                      onClick={() => handleCancelRequest(req.id)}>
+                      </Button>
+
+                      <RouteModalButton
+                        tripId={req.trips.id}
+                        size="sm"
+                        colorScheme="gray"
+                        variant="outline"
+                        borderRadius="full"
+                      >
+                        Route
+                      </RouteModalButton>
+
+                      <Button
+                        size="sm"
+                        colorScheme="red"
+                        variant="outline"
+                        borderRadius="full"
+                        onClick={() => handleCancelRequest(req.id)}
+                      >
                         Leave
-                    </Button>
-                  </HStack>
+                      </Button>
+                    </HStack>
                 </Flex>
                 
                 <Flex align="center" bg="gray.50" p={2} mt={3} borderRadius="md" border="1px solid" borderColor="gray.100">
@@ -147,7 +158,6 @@ export default function RiderActivity() {
                 <Flex justify="space-between" align="center">
                   <Box>
                     <Heading size="sm" color="gray.700" mb={1}>{req.trips.title}</Heading>
-                    <Text fontSize="sm" color="gray.600">{req.trips.destination}</Text>
                   </Box>
                   <Button
                     size="sm"
@@ -177,7 +187,6 @@ export default function RiderActivity() {
                 <Flex justify="space-between" align="center">
                   <Box>
                     <Heading size="sm" color="gray.600" mb={1}>{req.trips.title}</Heading>
-                    <Text fontSize="sm" color="gray.500">{req.trips.destination}</Text>
                   </Box>
                   <HStack>
                     <Badge colorScheme="yellow" fontSize="2xs">Pending</Badge>
