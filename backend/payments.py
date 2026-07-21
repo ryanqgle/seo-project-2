@@ -15,10 +15,19 @@ webhook_secret = os.getenv('STRIPE_WEBHOOK_SECRET_KEY')
 DOMAIN = os.getenv('FRONTEND_URL', 'http://localhost:5173')
 
 
+def get_authenticated_user():
+    from app import get_authenticated_user as get_authenticated_user_from_app
+
+    return get_authenticated_user_from_app()
+
+
 
 @payments_bp.route('/create-checkout-session', methods=['POST'])
 def create_checkout_session():
-    
+    user = get_authenticated_user()
+    if not user:
+        return jsonify({'error': 'Unauthorized'}), 401
+
     data = request.get_json()
     trip_request_id = data.get("trip_request_id")
     
@@ -37,6 +46,9 @@ def create_checkout_session():
         return jsonify({'error': 'trip request not found'}), 404
     
     trip_request = trip_request_result.data[0]
+
+    if trip_request.get('passenger_id') != user.id:
+        return jsonify({'error': 'Forbidden'}), 403
     
     if trip_request['status'] != 'awaiting_payment':
         return jsonify({'error': 'request is not ready for payment'}), 400

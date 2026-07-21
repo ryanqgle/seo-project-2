@@ -68,7 +68,14 @@ def test_create_trip_api_success(client, monkeypatch):
     monkeypatch.setattr(app_module, 'supabase', FakeSupabase(fake_data))
 
     response = client.post('/api/trips', json={
-        'title': 'Airport run', 'destination': 'LAX', 'departure_time': '2026-07-14T09:00'
+        'title': 'Airport run',
+        'origin': 'USC Campus',
+        'origin_lat': 34.0224,
+        'origin_lng': -118.2851,
+        'destination': 'LAX',
+        'destination_lat': 33.9416,
+        'destination_lng': -118.4085,
+        'departure_time': '2026-07-14T09:00'
     })
 
     assert response.status_code == 201
