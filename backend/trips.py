@@ -77,8 +77,30 @@ def get_trip_route(trip_id):
         coords = [start] + [(p['lat'], p['lng']) for p in ordered_pickups] + [end]
         route = route_geometry(coords)
 
-        stops = [{'type': 'origin', 'lat': start[0], 'lng': start[1], 'address': trip.get('origin')}]
+        # Look up the driver + every accepted passenger so each stop can carry the
+        # person it belongs to (name + profile picture). The map uses these to
+        # label pins with faces and names instead of numbers.
+        user_ids = list({trip['driver_id'], *(p['passenger_id'] for p in ordered_pickups)})
+        users_by_id = {}
+        if user_ids:
+            users_res = supabase.table('users') \
+                .select('id, first_name, last_name, profile_picture') \
+                .in_('id', user_ids).execute()
+            users_by_id = {u['id']: u for u in (users_res.data or [])}
+
+        driver = users_by_id.get(trip['driver_id'], {})
+        stops = [{
+            'type': 'origin',
+            'lat': start[0],
+            'lng': start[1],
+            'address': trip.get('origin'),
+            'user_id': trip['driver_id'],
+            'first_name': driver.get('first_name'),
+            'last_name': driver.get('last_name'),
+            'profile_picture': driver.get('profile_picture'),
+        }]
         for idx, p in enumerate(ordered_pickups, start=1):
+            passenger = users_by_id.get(p['passenger_id'], {})
             stops.append({
                 'type': 'pickup',
                 'order': idx,
@@ -86,6 +108,10 @@ def get_trip_route(trip_id):
                 'lng': p['lng'],
                 'address': p['address'],
                 'passenger_id': p['passenger_id'],
+                'user_id': p['passenger_id'],
+                'first_name': passenger.get('first_name'),
+                'last_name': passenger.get('last_name'),
+                'profile_picture': passenger.get('profile_picture'),
             })
         stops.append({'type': 'destination', 'lat': end[0], 'lng': end[1], 'address': trip.get('destination')})
 
