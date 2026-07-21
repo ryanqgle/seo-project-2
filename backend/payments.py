@@ -74,6 +74,25 @@ def create_checkout_session():
     amount_cents = int(float(trip['cost']) * 100)
     destination = trip.get('destination', 'Ride')
     
+    driver_id = trip['driver_id']
+
+    driver_result = (
+        supabase
+        .table('users')
+        .select('stripe_account_id, stripe_charges_enabled, stripe_payouts_enabled')
+        .eq('id', driver_id)
+        .execute()
+    )
+
+    if not driver_result.data:
+        return jsonify({'error': 'driver not found'}), 404
+
+    driver = driver_result.data[0]
+    driver_stripe_account_id = driver.get('stripe_account_id')
+
+    if not driver_stripe_account_id:
+        return jsonify({'error': 'driver has not set up payouts'}), 400
+    
     existing_payment_result = (
         supabase
         .table("payments")
@@ -135,6 +154,11 @@ def create_checkout_session():
                 'mode': 'payment',
                 'ui_mode': 'embedded_page',
                 'return_url': DOMAIN + '/payment-return?session_id={CHECKOUT_SESSION_ID}',
+                'payment_intent_data': {
+                    'transfer_data': {
+                        'destination': driver_stripe_account_id,
+                    },
+                },
                 'metadata': {
                     'trip_request_id': str(trip_request_id),
                     'trip_id': str(trip_id),
