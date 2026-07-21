@@ -108,7 +108,11 @@ function TripsFeed() {
   
   // Controls the "set your pickup location" pop-up.
   const pickup = useDisclosure()
-  const { token } = useAuth()
+  const { token, session } = useAuth()
+  // The signed-in user's id, matched against each trip's driver_id so we can hide
+  // the "Request to Join" button on the user's own trips (you can't join your
+  // own ride).
+  const currentUserId = session?.user?.id ?? null
   const navigate = useNavigate()
   // Chakra's toast shows the small pop-up notifications (e.g. "Request sent!").
   const toast = useToast()
@@ -475,7 +479,16 @@ function TripsFeed() {
                   </Text>
                 )}
 
-                {acceptedTripIds.has(trip.id) ? (
+                {currentUserId && trip.driver_id === currentUserId ? (
+                  <RouteModalButton
+                    tripId={trip.id}
+                    variant="solid"
+                    borderRadius="full"
+                    size="sm"
+                  >
+                    View Route
+                  </RouteModalButton>
+                ) : acceptedTripIds.has(trip.id) ? (
                   <RouteModalButton
                     tripId={trip.id}
                     variant="solid"

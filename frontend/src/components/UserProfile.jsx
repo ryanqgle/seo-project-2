@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../dbConnection'
 import {
+    Avatar,
     Box,
     Button,
     FormControl,
@@ -22,6 +23,7 @@ import { apiUrl } from '../api'
 // current details into a form, lets them change their name, role, and profile
 // picture, and saves the changes back to the backend. The school field is filled
 // in automatically from the user's email and can't be edited here.
+
 export default function UserProfile() {
     // `token` proves who we are to the backend on every request.
     const { token } = useAuth()
@@ -115,6 +117,11 @@ export default function UserProfile() {
                 </Heading>
                  <form onSubmit={handleSave}>
                     <VStack spacing={5}>
+                        <Avatar
+                            size="xl"
+                            src={profile.profile_picture || undefined}
+                            name={`${profile.first_name} ${profile.last_name}`}
+                        />
                             
                         <FormControl isRequired>
                             <FormLabel fontSize="sm" fontWeight="bold">First Name</FormLabel>

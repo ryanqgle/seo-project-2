@@ -321,7 +321,15 @@ function DriverRequests() {
                         Route
                       </RouteModalButton>
                     </HStack>
-                    <Button size="sm" colorScheme="red" variant="ghost" onClick={() => handleDeleteTrip(trip.id)}>
+                    <Button
+                      size="sm"
+                      bg="red.500"
+                      color="white"
+                      _hover={{ bg: 'red.600' }}
+                      _active={{ bg: 'red.700' }}
+                      _dark={{ bg: 'red.500', color: 'white', _hover: { bg: 'red.600' }, _active: { bg: 'red.700' } }}
+                      onClick={() => handleDeleteTrip(trip.id)}
+                    >
                       Delete Trip
                     </Button>
                   </Flex>
@@ -336,7 +344,7 @@ function DriverRequests() {
                           <AccordionButton _hover={{ bg: "green.100", _dark: { bg: "green.800" } }} borderRadius="md" px={3} py={2}>
                           <Box flex="1" textAlign="left">
                               <Text fontSize="sm" fontWeight="bold" color="green.700" _dark={{ color: "green.100" }}>
-                                  Accepted Riders ({accepted.length}/{accepted.length + (trip.available_seats || 0)} Seats)
+                                  Accepted Riders ({accepted.length}/{accepted.length + (awaitingPayment.length || 0) + (pending.length || 0)} Seats)
                               </Text>
                           </Box>
                           <AccordionIcon color="green.700"  _dark={{ color: "green.100" }}/>

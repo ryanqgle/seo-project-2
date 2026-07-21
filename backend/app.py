@@ -64,9 +64,25 @@ def register_auth_user():
 
     if user:
         try:
+            metadata = user.user_metadata or {}
+            google_profile_picture = (
+                metadata.get('avatar_url')
+                or metadata.get('picture')
+            )
+
+            user_exists = supabase.table('users').select('profile_picture').eq('id', user.id).execute()
+            existing_picture = None
+            if user_exists.data:
+                existing_picture = user_exists.data[0]['profile_picture']
+            if existing_picture:
+                profile_picture = existing_picture
+            else:
+                profile_picture = google_profile_picture
+
             supabase.table('users').upsert({
                 'id': user.id,
-                'email': user.email
+                'email': user.email,
+                'profile_picture': profile_picture
             }).execute()
             return {"status": "success", "message": f"User {user.email} registered successfully."}
         except Exception as e:
@@ -111,9 +127,10 @@ def manage_profile():
                 'first_name': data.get('first_name'),
                 'last_name': data.get('last_name'),
                 'role': data.get('role'),
-                'profile_picture': data.get('profile_picture'),
                 'school': verify_school
                 }
+            if data.get('profile_picture'):
+                update_data['profile_picture'] = data.get('profile_picture')
 
             res = supabase.table('users').update(update_data).eq('id', user.id).execute()
             return {"status": "success", "profile": res.data[0]}, 200
