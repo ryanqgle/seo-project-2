@@ -74,6 +74,9 @@ function DriverRequests() {
         return
       }
 
+
+      try {
+
       const payoutRes = await fetch(apiUrl('/api/stripe/connect/status'), {
         headers: {
           Authorization: `Bearer ${session.access_token}`,
@@ -86,7 +89,6 @@ function DriverRequests() {
         setPayoutsReady(payoutData.onboarding_complete)
       }
 
-      try {
         // Look up our own user id so we can pick out only our trips.
         const profileRes = await fetch(apiUrl('/api/edit-profile'), {
           headers: { 'Authorization': `Bearer ${session.access_token}` }
