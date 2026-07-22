@@ -123,6 +123,10 @@ const DriverDemo = () => {
     setSeats(0)
   }
 
+  const handleDecline = () => {
+    setDriverStatus('decline')
+  }
+
   return (
     <Card variant="outline" boxShadow="sm" borderRadius="xl" w="full" maxW="md" mx="auto" bg="white" _dark={{ bg: "gray.800", borderColor: "gray.700" }}>
       <CardBody p={5}>
@@ -180,7 +184,7 @@ const DriverDemo = () => {
             </Flex>
             <HStack spacing={1}>
               <Button size="xs" bg="black" color="white" _hover={{ bg: "gray.800" }} _dark={{ bg: "white", color: "black", _hover: { bg: "gray.200" } }} onClick={handleAccept}>Accept</Button>
-              <Button size="xs" colorScheme="red" variant="ghost">Decline</Button>
+              <Button size="xs" colorScheme="red" variant="dangerSoft" onClick={handleDecline}>Decline</Button>
             </HStack>
           </Flex>
         ) : (

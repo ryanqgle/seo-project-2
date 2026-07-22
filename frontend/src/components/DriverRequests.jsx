@@ -268,37 +268,38 @@ function DriverRequests() {
   }
 
   return (
-    <Box maxW="7xl" mx="auto" py={8} px={4}>
-      <Heading size="xl" mb={6}>
-        Driver Dashboard
-      </Heading>
+    <Box maxW="7xl" mx="auto" py={8} px={{ base: 4, md: 8}}>
+      <VStack spacing={5} mb={8}>
+        <Heading size="xl" textAlign="center">
+          Driver Dashboard
+        </Heading>
 
-      <Button
-        colorScheme={payoutsReady ? 'green' : 'purple'}
-        mb={6}
-        onClick={handleSetupPayouts}
-      >
-        {payoutsReady ? 'Payouts set up' : 'Set up payouts'}
-      </Button>
+        <Button
+          colorScheme={payoutsReady ? 'green' : 'purple'}
+          onClick={handleSetupPayouts}
+        >
+          {payoutsReady ? 'Payouts set up' : 'Set up payouts'}
+        </Button>
 
-      {!payoutsReady && (
-        <Alert status="warning" mb={6} borderRadius="md">
-          <AlertIcon />
-          <Box>
-            <AlertTitle>Set up payouts before accepting riders</AlertTitle>
-            <AlertDescription>
-              Riders cannot pay you until Stripe payouts are fully enabled
-            </AlertDescription>
-          </Box>
-        </Alert>
-      )}
+        {!payoutsReady && (
+          <Alert status="warning" borderRadius="xl" maxW="3xl" mx="auto" alignItems="center">
+            <AlertIcon />
+            <Box textAlign="left">
+              <AlertTitle>Set up payouts before accepting riders</AlertTitle>
+              <AlertDescription>
+                Riders cannot pay you until Stripe payouts are fully enabled
+              </AlertDescription>
+            </Box>
+          </Alert>
+        )}
 
-      {payoutWarning && (
-        <Alert status="error" mb={6} borderRadius="md">
-          <AlertIcon />
-          <AlertDescription>{payoutWarning}</AlertDescription>
-        </Alert>
-      )}
+        {payoutWarning && (
+          <Alert status="error" borderRadius="xl" maxW="3xl" mx="auto">
+            <AlertIcon />
+            <AlertDescription>{payoutWarning}</AlertDescription>
+          </Alert>
+        )}
+      </VStack>
 
       {trips.length === 0 && (
         <Text color="gray.500" fontSize="lg" textAlign="center" mt={10}>

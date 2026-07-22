@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
   Box,
@@ -19,7 +19,10 @@ import {
   Textarea,
   VStack,
   Alert,
-  AlertIcon
+  AlertTitle,
+  AlertDescription,
+  AlertIcon,
+  Text
 } from '@chakra-ui/react'
 import { useAuth } from '../auth.jsx'
 import { apiUrl } from '../api'
@@ -56,11 +59,63 @@ function CreateRideForm() {
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState('')
 
+  // Consts to ensure Driver has stripe setup in order to create ride
+  const [payoutsReady, setPayoutsReady] = useState(false)
+  const [checkingPayouts, setCheckingPayouts] = useState(true)
+
+
+  useEffect(() => {
+    const checkPayouts = async () => {
+      if (!token) return
+
+      try {
+        const res = await fetch(apiUrl('/api/stripe/connect/status'), {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        })
+
+        const data = await res.json()
+
+        if (res.ok) {
+          setPayoutsReady(data.onboarding_complete)
+        }
+      } catch (err) {
+        console.error('Failed to check payout status:', err)
+      } finally {
+        setCheckingPayouts(false)
+      }
+    }
+
+    checkPayouts()
+  }, [token])
+
   // Keeps the form in sync as the user types or ticks the checkbox. Each input's
   // `name` matches a field in `form`, so this updates just the one that changed.
   const handleChange = (e) => {
     const value = e.target.type === 'checkbox' ? e.target.checked : e.target.value
     setForm({ ...form, [e.target.name]: value })
+  }
+
+  const handleSetupPayouts = async () => {
+    try {
+      const res = await fetch(apiUrl('/api/stripe/connect/onboard'), {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
+
+      const data = await res.json()
+
+      if (!res.ok) {
+        throw new Error(data.message || data.error || 'Could not start payout setup')
+      }
+
+      window.location.href = data.url
+    } catch (err) {
+      setError(err.message)
+    }
   }
 
   // Runs when the driver clicks "Post Ride". The start and destination now come
@@ -109,10 +164,15 @@ function CreateRideForm() {
       })
       const data = await res.json()
 
+      if (!res.ok) {
+        setError(data.message || data.error || 'Could not post ride')
+        return
+      }
+
       if (data.status === 'success') {
         navigate('/feed')
       } else {
-        setError(data.message || 'Could not post ride.')
+        setError(data.message || data.error|| 'Could not post ride')
       }
     } catch (err) {
       console.error('Error creating trip:', err)
@@ -121,6 +181,41 @@ function CreateRideForm() {
       setSubmitting(false)
     }
   }
+
+if (checkingPayouts) {
+  return (
+    <Box maxW="xl" mx="auto" mt={10}>
+      <Text>Checking payout setup...</Text>
+    </Box>
+  )
+}
+
+if (!payoutsReady) {
+  return (
+    <Box maxW="xl" mx="auto" mt={10} px={4}>
+      <Alert status="warning" borderRadius="xl" mb={4}>
+        <AlertIcon />
+        <Box>
+          <AlertTitle>Set up payouts first</AlertTitle>
+          <AlertDescription>
+            You need to finish Stripe payout setup before creating a ride.
+          </AlertDescription>
+        </Box>
+      </Alert>
+
+      <Button onClick={handleSetupPayouts}>
+        Set up payouts
+      </Button>
+
+      {error && (
+        <Alert status="error" borderRadius="md" mt={4}>
+          <AlertIcon />
+          {error}
+        </Alert>
+      )}
+    </Box>
+  )
+}
 
   return (
     <Box p={4}>

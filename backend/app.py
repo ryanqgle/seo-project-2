@@ -217,6 +217,29 @@ def create_trip_api():
         return {"status": "error", "message": "Unauthorized."}, 401
 
     try:
+
+        profile_result = (
+            supabase
+            .table('users')
+            .select('stripe_account_id, stripe_onboarding_complete, stripe_charges_enabled, stripe_payouts_enabled')
+            .eq('id', user.id)
+            .execute()
+        )
+
+        if not profile_result.data:
+            return jsonify({
+                'status': 'error',
+                'error': 'User profile not found'
+            }), 404
+
+        profile = profile_result.data[0]
+
+        if not profile.get('stripe_onboarding_complete'):
+            return jsonify({
+                'status': 'error',
+                'error': 'Please set up payouts before creating a ride.'
+            }), 400
+        
         data = request.json or {}
 
         title = (data.get('title') or '').strip()
