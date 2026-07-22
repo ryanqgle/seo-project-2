@@ -23,7 +23,7 @@ import RouteMap from './RouteMap.jsx'
 // Props:
 //   tripId — the trip to fetch the route for
 //   ...buttonProps — forwarded to the Chakra Button (size, colorScheme, etc.)
-function RouteModalButton({ tripId, children = 'View Route', ...buttonProps }) {
+function RouteModalButton({ tripId, routeType='full', children = 'View Route', ...buttonProps }) {
   const { isOpen, onOpen, onClose } = useDisclosure()
   // 'idle' before first open, then 'loading' | 'error' | 'ready'.
   const [state, setState] = useState('idle')
@@ -45,7 +45,12 @@ function RouteModalButton({ tripId, children = 'View Route', ...buttonProps }) {
     }
 
     try {
-      const res = await fetch(apiUrl(`/api/trips/${tripId}/route`), {
+      const routePath =
+        routeType === 'base'
+          ? `/api/trips/${tripId}/base-route`
+          : `/api/trips/${tripId}/route`
+
+      const res = await fetch(apiUrl(routePath), {
         headers: { Authorization: `Bearer ${session.access_token}` },
       })
       const data = await res.json()

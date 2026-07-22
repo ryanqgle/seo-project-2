@@ -524,6 +524,7 @@ function TripsFeed() {
                 ) : role === 'driver' ? (
                   <RouteModalButton
                     tripId={trip.id}
+                    routeType="base"
                     variant="solid"
                     borderRadius="full"
                     size="sm"
@@ -539,9 +540,8 @@ function TripsFeed() {
                   >
                     View Route
                   </RouteModalButton>
-                ): pendingTripIds.has(trip.id) ? (
+                ) : pendingTripIds.has(trip.id) ? (
                   <Button
-                    width="x"
                     variant="solid"
                     borderRadius="full"
                     size="sm"
@@ -551,11 +551,10 @@ function TripsFeed() {
                   </Button>
                 ) : (
                   <Button
-                  width="x"
-                  variant="solid"
-                  borderRadius="full"
-                  size="sm"
-                  onClick={() => openPickup(trip)}
+                    variant="solid"
+                    borderRadius="full"
+                    size="sm"
+                    onClick={() => openPickup(trip)}
                   >
                     {trip.available_seats <= 0 ? 'Join Waitlist' : 'Request to Join'}
                   </Button>
