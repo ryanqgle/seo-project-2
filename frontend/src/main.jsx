@@ -124,17 +124,17 @@ function Shell() {
         <Route
           path="/payment/:tripRequestId"
           element={
-            // <ProtectedRoute>
+            <ProtectedRoute>
               <Payment />
-            // </ProtectedRoute>
+            </ProtectedRoute>
           }
         />
         <Route
           path="/payment-return"
           element={
-            // <ProtectedRoute>
+            <ProtectedRoute>
               <PaymentReturn />
-            // </ProtectedRoute>
+            </ProtectedRoute>
           }
         />
         <Route path="*" element={<Navigate to="/" replace />} />

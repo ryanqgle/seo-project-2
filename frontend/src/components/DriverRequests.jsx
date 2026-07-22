@@ -255,6 +255,18 @@ function DriverRequests() {
 
   if (loading) return <p>Loading requests...</p>
 
+  const driverCardProps = {
+    bg: 'blue.50',
+    border: '1px solid',
+    borderColor: 'blue.300',
+    borderRadius: 'xl',
+    boxShadow: 'none',
+    _dark: {
+      bg: 'blue.900',
+      borderColor: 'blue.700',
+    },
+  }
+
   return (
     <Box maxW="7xl" mx="auto" py={8} px={4}>
       <Heading size="xl" mb={6}>
@@ -302,7 +314,7 @@ function DriverRequests() {
           const accepted = tripReqs.filter(r => r.status === 'accepted' || r.status === 'picked_up')
 
           return (
-            <Card key={trip.id} variant="outline" boxShadow="sm" borderRadius="xl" >
+            <Card key={trip.id} {...driverCardProps}>
               <CardBody>
                 
                 {/* header + buttons */}
@@ -317,17 +329,14 @@ function DriverRequests() {
                       <Button size="sm" borderRadius="full" onClick={() => { setActiveTripChat(trip.id); onOpen() }}>
                         Chat
                       </Button>
-                      <RouteModalButton tripId={trip.id} size="sm" variant="outline" borderRadius="full">
+                      <RouteModalButton tripId={trip.id} size="sm" variant="neutralSoft" borderRadius="full">
                         Route
                       </RouteModalButton>
                     </HStack>
                     <Button
                       size="sm"
-                      bg="red.500"
-                      color="white"
-                      _hover={{ bg: 'red.600' }}
-                      _active={{ bg: 'red.700' }}
-                      _dark={{ bg: 'red.500', color: 'white', _hover: { bg: 'red.600' }, _active: { bg: 'red.700' } }}
+                      colorScheme="red"
+                      variant="dangerSoft"
                       onClick={() => handleDeleteTrip(trip.id)}
                     >
                       Delete Trip
@@ -363,10 +372,10 @@ function DriverRequests() {
                                             <Button size="xs" colorScheme="green" onClick={() => handlePickupStatus(trip.id, request.id, 'picked_up')}>
                                               {request.status === 'picked_up' ? 'In Car' : 'Hopped In'}
                                              </Button>
-                                            <Button size="xs" colorScheme="red" variant="outline" onClick={() => handlePickupStatus(trip.id, request.id, 'no_show')}>
+                                            <Button size="xs" variant="neutralSoft" onClick={() => handlePickupStatus(trip.id, request.id, 'no_show')}>
                                               No-show
                                             </Button>
-                                            <Button size="xs" colorScheme="red" variant="ghost" onClick={() => handleKickRider(trip.id, request.id)}>
+                                            <Button size="xs" colorScheme="red" variant="dangerSoft" onClick={() => handleKickRider(trip.id, request.id)}>
                                               Remove
                                             </Button>
                                           </Flex>
